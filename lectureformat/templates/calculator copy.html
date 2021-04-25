@@ -1,0 +1,14 @@
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>ElecCalc</title>
+    </head>
+    <body>
+        <p>Please answer the following questions about your lecture hall:</p>
+        <ul>
+            {% for question in question_list %}
+                <li>{{ question.question_text }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
