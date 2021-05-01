@@ -14,12 +14,10 @@ import numpy as np
 
 # Create your views here.
 def home(request):
-    return render(request, "calculator.html")
+    return render(request, "home.html")
 
-# def lectureformat(request):
-#     question_list = Question.objects.order_by('-question_text')[:5]
-#     context = {'question_list': question_list}
-#     return render(request, 'calculator.html', context)
+def calculator(request):
+    return render(request, "calculator.html")
 
 def lectureformat(request):
     num = request.POST['num_stud']
