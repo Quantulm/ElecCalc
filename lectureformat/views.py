@@ -10,6 +10,7 @@ import urllib, base64
 from PIL import Image
 from .models import Question
 import numpy as np
+import lectureformat.scripts as s
 
 
 # Create your views here.
@@ -19,7 +20,7 @@ def home(request):
 def calculator(request):
     return render(request, "calculator.html")
 
-def lectureformat(request):
+def toymodel(request):
     num = request.POST['num_stud']
     lec_type = request.POST['lec_type']
 
@@ -70,6 +71,29 @@ def lectureformat(request):
         num = int(num)
         lec_type = int(lec_type)/100
         data, res = toymodel(num, lec_type)
+        context = {}
+        context['graph'] = data
+        context['result'] = res
+        return render(request, 'result.html', context)
+
+    else:
+        res = "Only digits are allowed"
+        return render(request, "result.html", {"result": res})
+
+def lectureformat(request):
+    num = request.POST['num_stud']
+    lec_type = request.POST['lec_type']
+    season = request.POST['season']
+
+
+
+    if num.isdigit() and lec_type.isdigit() and season.isdigit():
+        if season != 0 or season != 1:
+            # Default to winter if wrong season is specified
+            season = 0
+        num = int(num)
+        lec_type = int(lec_type)/100
+        data, res = s.toycalc(num, lec_type, season)
         context = {}
         context['graph'] = data
         context['result'] = res
