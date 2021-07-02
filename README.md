@@ -9,7 +9,7 @@ Installation (Linux/ MacOS):
 3. Clone GitHub repository:  
     `git clone https://github.com/AlexHls/ElecCalc.git`
 4. Install conda environment:  
-    `conda env create --file eleccalc_env.txt`
+    `conda env create --file eleccalc_env.yml`
 5. Activate conda environment:  
     `conda activate eleccalc`
 6. Change into the main directory (should contain a manage.py file)
@@ -23,7 +23,7 @@ Installation (Windows):
 2. Open Anaconda Powershell Prompt (find it with Win+S)
 3. Clone GitHub repository from ''
 4. Install conda environment:  
-    `conda env create --file eleccalc_env.txt`
+    `conda env create --file eleccalc_env.yml`
 5. Cone GitHub repository from `https://github.com/AlexHls/ElecCalc`
     1. You can use the GitHub for Windows Desktop Client
     2. You can use the builtin git manager in your IDE (e.g. PyCharm)
