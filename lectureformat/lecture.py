@@ -5,7 +5,7 @@ import emcee
 import corner
 
 
-class lecture():
+class Lecture:
     """Lecture class. Creates an object for one single lecture."""
 
     def __init__(self, dataframe):
@@ -115,8 +115,8 @@ class lecture():
         else:
             return True
 
-    def caluclate_onsite(self):
-        """Function to calculate the onsite model"""
+    def sample_onsite(self):
+        """Function to resample data from onsite dataset"""
 
         # Step 1: Check if all data is present
         if not self.check_onsite():
@@ -152,6 +152,19 @@ class lecture():
         self.onsite_sampler = sampler
 
         return
+
+    def caluclate_onsite(self):
+        """Function to calculate the onsite model"""
+
+        # Step 1: Check if data has been resampled and run sampler if not
+        if self.onsite_sampler is None:
+            self.sample_onsite()
+
+        # Step 2: Sum up data to get total energy consumption
+        flat_samples = self.onsite_sampler.get_chain(discard=100, thin=15, flat=True)
+
+        return
+
 
     def plot_onsite(self):
         """Function to create the plot of the onsite model"""

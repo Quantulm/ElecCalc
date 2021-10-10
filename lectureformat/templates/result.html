@@ -3,9 +3,10 @@
 {% block content %}
 
 <h1> Lecture type preference: {{result}} </h1>
-<div style="width:1000;height:100">
+<div style="...">
     {{ graph|safe }}
 </div>
+    <p> Selected Lecture hall: {{ hall.hall_name }} with {{ hall.seating_capacity }} seats.</p>
 <p><a href="/">Back to the home screen</a></p>
 {% endblock %}
 
