@@ -56,5 +56,13 @@ def lecture_test_onsite(n_student, frac):
     return
 
 
+def create_lecture(num):
+    lect = lec.Lecture(500, tkey=300)
+    print("created lecture")
+
+
+def main():
+    create_lecture(500)
+
 if __name__ == "__main__":
-    lecture_test_onsite(600, 0.2)
+    main()

@@ -13,6 +13,24 @@ class LectureHall(models.Model):
     def __str__(self):
         return self.hall_name
 
+
+    def get_base_consumption():
+        """ Calculates basic consumption without students """
+        
+        self.base_consumption = (
+                self.light_blackboard_count * self.light_blackboard_consumption + 
+                self.light_stairs_count * self.light_stairs_consumption + 
+                self.beamer_count * self.beamer_consumption + 
+                self.amplifier_count * self.amplifier_consumption +
+                self.mic_count * self.mic_consumption +
+                self.cam_count * self.cam_consumption + 
+                self.other
+            )
+
+        return self.base_consumption
+
+
+
     hall_name = models.CharField("Name of the lecture hall", max_length=200)
     seating_capacity = models.PositiveIntegerField("Number of available seats")
     seating_capacity_distancing = models.PositiveIntegerField(

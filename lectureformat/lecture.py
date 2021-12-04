@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,20 +10,14 @@ import corner
 class Lecture:
     """Lecture class. Creates an object for one single lecture."""
 
-    def __init__(self, dataframe):
+    def __init__(self, num_stud, **kwargs):
         """
-        Initialise the lecture object. Requires a pandas DataFrame
-        containing the following information:
-        Data required for the on site consumption:
-        - Electronic device usage
-        - Air conditioning
-        - Lighting
-        - Beamer
-        - Transportation
-        Data for the online lectures:
-        - Streaming
-        - Electronic device usage
-        - Lighting
+        Initialise the lecture object.
+        Requires number of students. Further information
+        can be added via keywords.
+        Possible keywords:
+        - hall
+            LectureHall object
 
         Parameters
         ----------
@@ -29,50 +25,16 @@ class Lecture:
 
         """
 
-        if dataframe is None:
-            raise ValueError("No data supplied to create lecture. Please supply data.")
+        self.num_stud = num_stud
 
-        try:
-            self.electronic_online = dataframe["ElectronicOnline"]
-        except KeyError:
-            self.electronic_online = None
-        try:
-            self.electronic_onsite = dataframe["ElectronicOnsite"]
-        except KeyError:
-            self.electronic_onsite = None
-        try:
-            self.air_conditioning = dataframe["AirConditioning"]
-        except KeyError:
-            self.air_conditioning = None
-        try:
-            self.streaming = dataframe["Streaming"]
-        except KeyError:
-            self.streaming = None
-        try:
-            self.transportation = dataframe["Transportation"]
-        except KeyError:
-            self.transportation = None
-        try:
-            self.lighting_online = dataframe["LightingOnline"]
-        except KeyError:
-            self.lighting_online = None
-        try:
-            self.lighting_onsite = dataframe["LightingOnsite"]
-        except KeyError:
-            self.lighting_onsite = None
-        try:
-            self.beamer = dataframe["Beamer"]
-        except KeyError:
-            self.beamer = None
-        try:
-            self.num_lec = dataframe["NumLec"]
-        except KeyError:
-            self.num_lec = None
-
-        self.onsite_sampler = None
-        self.online_sampler = None
+        for key, value in kwargs.items():
+            if key=="hall":
+                self.hall = value 
+            else:
+                warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         return
+
 
     def get_onsite(self):
         """Function returning all data classified as 'onsite' data"""
