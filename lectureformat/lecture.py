@@ -28,13 +28,12 @@ class Lecture:
         self.num_stud = num_stud
 
         for key, value in kwargs.items():
-            if key=="hall":
-                self.hall = value 
+            if key == "hall":
+                self.hall = value
             else:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         return
-
 
     def get_onsite(self):
         """Function returning all data classified as 'onsite' data"""
@@ -82,7 +81,9 @@ class Lecture:
 
         # Step 1: Check if all data is present
         if not self.check_onsite():
-            raise ValueError("Not enough data present for the calculation of the onsite result.")
+            raise ValueError(
+                "Not enough data present for the calculation of the onsite result."
+            )
 
         # Step 2: Create covariance matrix and mean vector
         data = self.get_onsite()
@@ -100,7 +101,7 @@ class Lecture:
         nwalkers = 32
         ndim = len(mean)
 
-        p0 = np.random.rand(nwalkers, ndim) # Initial value
+        p0 = np.random.rand(nwalkers, ndim)  # Initial value
 
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, args=[mean, cov])
 
@@ -127,14 +128,11 @@ class Lecture:
 
         return
 
-
     def plot_onsite(self):
         """Function to create the plot of the onsite model"""
         flat_samples = self.onsite_sampler.get_chain(discard=100, thin=15, flat=True)
 
-        fig = corner.corner(
-            flat_samples
-        )
+        fig = corner.corner(flat_samples)
 
         return fig
 

@@ -6,27 +6,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lectureformat', '0002_auto_20211009_1718'),
+        ("lectureformat", "0002_auto_20211009_1718"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Faculty',
+            name="Faculty",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('faculty_name', models.CharField(max_length=200, verbose_name='Faculty name')),
-                ('lec_length', models.IntegerField(verbose_name='Average lecture length (min)')),
-                ('dev_usage', models.FloatField(verbose_name='Usage of electronic devices (%)')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "faculty_name",
+                    models.CharField(max_length=200, verbose_name="Faculty name"),
+                ),
+                (
+                    "lec_length",
+                    models.IntegerField(verbose_name="Average lecture length (min)"),
+                ),
+                (
+                    "dev_usage",
+                    models.FloatField(verbose_name="Usage of electronic devices (%)"),
+                ),
             ],
         ),
         migrations.RemoveField(
-            model_name='userinput',
-            name='question',
+            model_name="userinput",
+            name="question",
         ),
         migrations.DeleteModel(
-            name='Question',
+            name="Question",
         ),
         migrations.DeleteModel(
-            name='UserInput',
+            name="UserInput",
         ),
     ]

@@ -7,34 +7,96 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lectureformat', '0003_auto_20211009_1726'),
+        ("lectureformat", "0003_auto_20211009_1726"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Device',
+            name="Device",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('device_name', models.CharField(max_length=200, verbose_name='Device name')),
-                ('power_consumption_online', models.FloatField(verbose_name='Power consumption during online lecture')),
-                ('power_consumption_offline', models.FloatField(verbose_name='Power consumption during onsite lecture')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "device_name",
+                    models.CharField(max_length=200, verbose_name="Device name"),
+                ),
+                (
+                    "power_consumption_online",
+                    models.FloatField(
+                        verbose_name="Power consumption during online lecture"
+                    ),
+                ),
+                (
+                    "power_consumption_offline",
+                    models.FloatField(
+                        verbose_name="Power consumption during onsite lecture"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Survey',
+            name="Survey",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('survey_name', models.CharField(max_length=200, verbose_name='Survey name')),
-                ('survey_file', models.FileField(upload_to=django.core.files.storage.FileSystemStorage(location='/data'))),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "survey_name",
+                    models.CharField(max_length=200, verbose_name="Survey name"),
+                ),
+                (
+                    "survey_file",
+                    models.FileField(
+                        upload_to=django.core.files.storage.FileSystemStorage(
+                            location="/data"
+                        )
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='University',
+            name="University",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('university_name', models.CharField(max_length=200, verbose_name='Name of the University/Campus')),
-                ('avg_travel_distance', models.FloatField(verbose_name='Average travel distance of students')),
-                ('stdev_travel_distance', models.FloatField(verbose_name='Standard deviation of average travel distance of students')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "university_name",
+                    models.CharField(
+                        max_length=200, verbose_name="Name of the University/Campus"
+                    ),
+                ),
+                (
+                    "avg_travel_distance",
+                    models.FloatField(
+                        verbose_name="Average travel distance of students"
+                    ),
+                ),
+                (
+                    "stdev_travel_distance",
+                    models.FloatField(
+                        verbose_name="Standard deviation of average travel distance of students"
+                    ),
+                ),
             ],
         ),
     ]

@@ -8,13 +8,10 @@ import matplotlib.pyplot as plt
 def lecture_test_onsite(n_student, frac):
     """Function to test lecture class onsite calculation"""
 
-    rng = np.random.default_rng(seed=42) # Seed to ensure reproducability
+    rng = np.random.default_rng(seed=42)  # Seed to ensure reproducability
 
     # Artificial covariance between numlec and transportation
-    cov = np.array(
-        [[ 20, -4.9],
-        [-4.9,  1.9]]
-    )
+    cov = np.array([[20, -4.9], [-4.9, 1.9]])
     corr_dat = rng.multivariate_normal(mean=[86.4, 5], cov=cov, size=n_student).T
 
     # Create test data set:
@@ -29,7 +26,7 @@ def lecture_test_onsite(n_student, frac):
         {
             # "ElectronicOnline": np.full(shape=n_student, fill_value=25),
             "ElectronicOnline": rng.normal(loc=25, scale=5, size=n_student),
-            "ElectronicOnsite": rng.normal(loc=25*frac, scale=5, size=n_student),
+            "ElectronicOnsite": rng.normal(loc=25 * frac, scale=5, size=n_student),
             "AirConditioning": rng.normal(loc=18, scale=1, size=n_student),
             # "AirConditioning": np.full(shape=n_student, fill_value=18),
             "Streaming": rng.normal(loc=0.1152, scale=0.01, size=n_student),
@@ -52,7 +49,6 @@ def lecture_test_onsite(n_student, frac):
     fig = lecture.plot_onsite()
     plt.show()
 
-
     return
 
 
@@ -63,6 +59,7 @@ def create_lecture(num):
 
 def main():
     create_lecture(500)
+
 
 if __name__ == "__main__":
     main()
