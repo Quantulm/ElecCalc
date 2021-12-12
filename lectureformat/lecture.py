@@ -10,19 +10,29 @@ import corner
 class Lecture:
     """Lecture class. Creates an object for one single lecture."""
 
-    def __init__(self, num_stud, **kwargs):
+    def __init__(self, num_stud, online, **kwargs):
         """
         Initialise the lecture object.
-        Requires number of students. Further information
+        Requires number of students and format. Further information
         can be added via keywords.
         Possible keywords:
         - hall
             LectureHall object
+        - streaming
+            StreamingService object
+        - vod
+            VideoOnDemandService object
+        - faculty
+            Faculty object
+        - university
+            University object
+        All other relevant information will be automatically
+        retrieved from the database based on survey statistics
 
         Parameters
         ----------
-        dataframe : pandas DataFrame or Dict
-
+        num_stud : int
+            Number of students expected to attend the lecture
         """
 
         self.num_stud = num_stud
@@ -30,115 +40,55 @@ class Lecture:
         for key, value in kwargs.items():
             if key == "hall":
                 self.hall = value
+            elif key == "streaming":
+                self.streaming = value
+            elif key == "vod":
+                self.vod = value
+            elif key == "faculty":
+                self.faculty = value
+            elif key == "university":
+                self.university = value
+            # TODO add remaining fields
             else:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         return
 
-    def get_onsite(self):
-        """Function returning all data classified as 'onsite' data"""
-        return np.array(
-            [
-                self.electronic_onsite,
-                self.air_conditioning,
-                self.transportation,
-                self.lighting_onsite,
-                self.beamer,
-                self.num_lec,
-            ]
-        )
+    def get_consumption(online, sampling="simple"):
+        """
+        Basic function to get the consumption of a lecture
 
-    def check_onsite(self):
-        """Check if all variables for the calculation of the onsite model are present"""
-        if self.electronic_onsite is None:
-            return False
-        elif self.air_conditioning is None:
-            return False
-        elif self.transportation is None:
-            return False
-        elif self.beamer is None:
-            return False
-        elif self.num_lec is None:
-            return False
-        else:
-            return True
+        Parameters
+        ----------
+        online : bool
+            True of lecture is held online, False if offline
+            (i.e. on-site)
+        sampling : str
+            Method for samling. Either 'simple' or 'mcmc'.
 
-    def check_online(self):
-        """Check if all variables for the calculation of the online model are present"""
-        if self.electronic_online is None:
-            return False
-        elif self.streaming is None:
-            return False
-        elif self.lighting_online is None:
-            return False
-        elif self.num_lec is None:
-            return False
-        else:
-            return True
+        Returns
+        -------
+        consumption : float
+            Consumption of lecture in kW
 
-    def sample_onsite(self):
-        """Function to resample data from onsite dataset"""
+        """
 
-        # Step 1: Check if all data is present
-        if not self.check_onsite():
-            raise ValueError(
-                "Not enough data present for the calculation of the onsite result."
-            )
+        if online:
+            # Calculation of the consumption for an online lecture
+            # TODO Make sure that the calculation makes sense
 
-        # Step 2: Create covariance matrix and mean vector
-        data = self.get_onsite()
+            # Get all available Living situation
+            # TODO refine to only select living situations that are
+            # relevant for selecte university
+            livings = Living_Situation.objects.all()
 
-        cov = np.cov(data)
+            # Get all possible consumptions
+            living_consumptions = []
+            for l in living:
+                living_consumptions.append(l.get_consumption())
 
-        mean = np.mean(data, axis=1)
+            # TODO For simple sampling use kde.resample()
 
-        # Step 3: Define multivariate Gaussian density
-        def log_prob(x, mean, cov):
-            diff = x - mean
-            return -0.5 * np.dot(diff, np.linalg.solve(cov, diff))
+            return
 
-        # Step 4: Set up ensemble sampler
-        nwalkers = 32
-        ndim = len(mean)
-
-        p0 = np.random.rand(nwalkers, ndim)  # Initial value
-
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, args=[mean, cov])
-
-        # Step 5: Run a short burn in
-        state = sampler.run_mcmc(p0, 100)
-        sampler.reset()
-
-        # Step 6: Run production
-        sampler.run_mcmc(state, 5000)
-
-        self.onsite_sampler = sampler
-
-        return
-
-    def caluclate_onsite(self):
-        """Function to calculate the onsite model"""
-
-        # Step 1: Check if data has been resampled and run sampler if not
-        if self.onsite_sampler is None:
-            self.sample_onsite()
-
-        # Step 2: Sum up data to get total energy consumption
-        flat_samples = self.onsite_sampler.get_chain(discard=100, thin=15, flat=True)
-
-        return
-
-    def plot_onsite(self):
-        """Function to create the plot of the onsite model"""
-        flat_samples = self.onsite_sampler.get_chain(discard=100, thin=15, flat=True)
-
-        fig = corner.corner(flat_samples)
-
-        return fig
-
-    def calculate_online(self):
-        """Function to calculate online model"""
-        pass
-
-    def plot_online(self):
-        """Function to create the plot of the online model"""
+            consumption = self.streaming.get_consumption(num_stud)

@@ -38,6 +38,8 @@ def lectureformat(request):
     season = request.POST["season"]
     lecture_hall = get_object_or_404(LectureHall, pk=request.POST["lecture_halls"])
 
+    a = LectureHall.objects.all()
+
     if num.isdigit() and lec_type.isdigit() and season.isdigit():
         if season != 0 or season != 1:
             # Default to winter if wrong season is specified
@@ -47,7 +49,7 @@ def lectureformat(request):
         data, res = s.toycalc(num, lec_type, season)
         context = {}
         context["graph"] = data
-        context["result"] = res
+        context["result"] = a[0].test()
         context["hall"] = lecture_hall
         return render(request, "result.html", context)
 

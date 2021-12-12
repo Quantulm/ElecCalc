@@ -73,7 +73,7 @@ class LectureHall(models.Model):
     other = models.FloatField("Other energy consuming sources (kWh/h)")
 
 
-class Streaming(models.Model):
+class StreamingService(models.Model):
     def __str__(self):
         return self.streaming_name
 
@@ -94,7 +94,7 @@ class Streaming(models.Model):
     )
 
 
-class Video_On_Demand(models.Model):
+class VideoOnDemandService(models.Model):
     def __str__(self):
         return self.vod_name
 

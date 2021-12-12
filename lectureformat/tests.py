@@ -4,6 +4,8 @@ import pandas as pd
 import lecture as lec
 import matplotlib.pyplot as plt
 
+from models import LectureHall
+
 # Create your tests here.
 def lecture_test_onsite(n_student, frac):
     """Function to test lecture class onsite calculation"""
@@ -58,7 +60,8 @@ def create_lecture(num):
 
 
 def main():
-    create_lecture(500)
+    a = LectureHall.object.all()
+    print(a)
 
 
 if __name__ == "__main__":
