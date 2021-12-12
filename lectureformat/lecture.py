@@ -72,6 +72,13 @@ class Lecture:
             Consumption of lecture in kW
 
         """
+        
+        # TODO remove Test output
+        #### This output is a DUMMY until function is complete
+        if online:
+            return 8000
+        else:
+            return 6000
 
         if online:
             # Calculation of the consumption for an online lecture
