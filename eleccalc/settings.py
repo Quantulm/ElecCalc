@@ -21,14 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = "django-insecure-+-gd0zfxdh(_s*yrief!gb*uwm(xka2%f6dlgkq4t632*rn=$0"
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = "django-insecure-+-gd0zfxdh(_s*yrief!gb*uwm(xka2%f6dlgkq4t632*rn=$0"
+#SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # TODO REMOVE IP
-ALLOWED_HOSTS = ['138.246.225.146', 'localhost']
+#ALLOWED_HOSTS = ['138.246.225.146', 'localhost']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -79,18 +80,18 @@ WSGI_APPLICATION = "eleccalc.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-#    "default": {
-#        "ENGINE": "django.db.backends.sqlite3",
-#        "NAME": BASE_DIR / "db.sqlite3",
-#    }
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'eleccalc',
-        'USER': 'alexh',
-        'PASSWORD': os.environ["DBPASSWD"],
-        'HOST': 'localhost',
-        'PORT': '',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'NAME': 'eleccalc',
+#        'USER': 'alexh',
+#        'PASSWORD': os.environ["DBPASSWD"],
+#        'HOST': 'localhost',
+#        'PORT': '',
+#    }
 }
 
 
@@ -131,6 +132,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
