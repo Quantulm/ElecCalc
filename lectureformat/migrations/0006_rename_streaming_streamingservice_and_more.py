@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lectureformat', '0005_auto_20211211_1936'),
+        ("lectureformat", "0005_auto_20211211_1936"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='Streaming',
-            new_name='StreamingService',
+            old_name="Streaming",
+            new_name="StreamingService",
         ),
         migrations.RenameModel(
-            old_name='Video_On_Demand',
-            new_name='VideoOnDemandService',
+            old_name="Video_On_Demand",
+            new_name="VideoOnDemandService",
         ),
     ]

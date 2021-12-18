@@ -12,8 +12,21 @@ class LectureHall(models.Model):
     def __str__(self):
         return self.hall_name
 
-    def get_base_consumption():
-        """Calculates basic consumption without students"""
+    # TODO get & set attribute function
+
+    def get_base_consumption(self, time):
+        """
+        Calculates basic consumption without students
+        ------
+        Parameters
+        time : float
+            Duration of the lecture
+
+        ------
+        Return :
+        consumption : float
+            returns consumption in kWh
+        """
 
         self.base_consumption = (
             self.light_blackboard_count * self.light_blackboard_consumption

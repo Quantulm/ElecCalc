@@ -72,7 +72,7 @@ class Lecture:
             Consumption of lecture in kW
 
         """
-        
+
         # TODO remove Test output
         #### This output is a DUMMY until function is complete
         if online:

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,16 +22,42 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if os.envirion["HOST"] == "WebServer":
-#SECRET_KEY = "django-insecure-+-gd0zfxdh(_s*yrief!gb*uwm(xka2%f6dlgkq4t632*rn=$0"
-SECRET_KEY = os.environ["SECRET_KEY"]
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+try:
+    if os.environ["HOST"] == "Alinor":
+        SECRET_KEY = os.environ["SECRET_KEY"]
+        DEBUG = False
+        # TODO REMOVE IP
+        ALLOWED_HOSTS = ["138.246.225.146", "localhost"]
 
-# TODO REMOVE IP
-ALLOWED_HOSTS = ['138.246.225.146', 'localhost']
+        # Database
+        # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql_psycopg2",
+                "NAME": "eleccalc",
+                "USER": "alexh",
+                "PASSWORD": os.environ["DBPASSWD"],
+                "HOST": "localhost",
+                "PORT": "",
+            }
+        }
 
+    else:
+        sys.exit("Wrong Host")
+except KeyError:
+    SECRET_KEY = "django-insecure-+-gd0zfxdh(_s*yrief!gb*uwm(xka2%f6dlgkq4t632*rn=$0"
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    # Database
+    # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Application definition
 
@@ -76,25 +103,6 @@ WSGI_APPLICATION = "eleccalc.wsgi.application"
 # APPEND_SLASH=False
 
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-DATABASES = {
-#    "default": {
-#        "ENGINE": "django.db.backends.sqlite3",
-#        "NAME": BASE_DIR / "db.sqlite3",
-#    }
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'eleccalc',
-        'USER': 'alexh',
-        'PASSWORD': os.environ["DBPASSWD"],
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -132,7 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
