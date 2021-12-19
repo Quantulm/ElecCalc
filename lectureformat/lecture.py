@@ -86,9 +86,9 @@ class Lecture:
         # TODO remove Test output
         #### This output is a DUMMY until function is complete
         if online:
-            return 8000
+            return np.random.rand(1)[0] * 60 * self.num_stud 
         else:
-            return 6000
+            return np.random.rand(1)[0] * 40 * self.num_stud 
 
         if online:
             # Calculation of the consumption for an online lecture
