@@ -3,8 +3,12 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import emcee
 import corner
+
+try:
+    import emcee
+except ImportError:
+    emcee = None
 
 
 class Lecture:
@@ -72,6 +76,12 @@ class Lecture:
             Consumption of lecture in kW
 
         """
+
+        # Check if emcee could be imported if sampling is set to mcmc
+        if sampling == "mcmc" and emcee is None:
+            raise ImportError(
+                "Sampling is set to mcmc, but emcee could not be imported"
+            )
 
         # TODO remove Test output
         #### This output is a DUMMY until function is complete
