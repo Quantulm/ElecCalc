@@ -8,6 +8,25 @@ fs = FileSystemStorage(location="data")
 # Create your models here.
 
 
+#Suggest/TODO: This can be the parent class of all the previous ones
+class University(models.Model):
+    def __str__(self):
+        return self.university_name
+
+    def get_consumption(self):
+        return 8000
+
+    university_name = models.CharField("Name of the University/Campus", max_length=200)
+    avg_travel_distance = models.FloatField("Average travel distance of students")
+    stdev_travel_distance = models.FloatField("Standard deviation of average travel distance of students")
+
+    transport_duration = models.FloatField("Time spent to or from university")
+    transport_dur_file= models.FileField(upload_to="data",blank=True)
+
+    transport_frequency = models.FloatField("Transport frequency in days per week")
+    transport_freq_file= models.FileField(upload_to="data",blank=True)
+
+
 class LectureHall(models.Model):
     def __str__(self):
         return self.hall_name
@@ -17,7 +36,7 @@ class LectureHall(models.Model):
     def get_consumption(self, time):
         """
         Calculates basic consumption without students
-        ------
+
         Parameters
         time : float
             Duration of the lecture
@@ -28,6 +47,7 @@ class LectureHall(models.Model):
             returns consumption in kWh
         """
 
+        return 8000
         self.base_consumption = (
             self.light_blackboard_count * self.light_blackboard_consumption
             + self.light_stairs_count * self.light_stairs_consumption
@@ -40,6 +60,7 @@ class LectureHall(models.Model):
 
         return self.base_consumption
 
+    university = models.ForeignKey(University, on_delete=models.CASCADE, blank=True, null=True)
 
     hall_name = models.CharField("Name of the lecture hall", max_length=200)
 
@@ -137,13 +158,15 @@ class Transportation(models.Model):
     transport_dist = models.FloatField("Conversion factor from minutes travelled to kilometers traveled (km/min)")
     transport_consumption = models.FloatField("Energy consumption per distance (kWh/km)")
 
-'Suggest/TODO: This can be the child class of all university and parent class of the others'
+#Suggest/TODO: This can be the child class of all university and parent class of the others
 class Faculty(models.Model):
     def __str__(self):
         return self.faculty_name
 
     def get_consumption(self):
         return 8000
+
+    university = models.ForeignKey(University, on_delete=models.CASCADE, blank=True, null=True)
 
     faculty_name = models.CharField("Faculty name", max_length=200)
 
@@ -167,21 +190,3 @@ class Faculty(models.Model):
 
     elec_dev_type = models.CharField("Device type by faculty", max_length=200)
     elec_dev_type_file = models.FileField(upload_to="data",blank=True)
-
-'Suggest/TODO: This can be the parent class of all the previous ones'
-class University(models.Model):
-    def __str__(self):
-        return self.university_name
-
-    def get_consumption(self):
-        return 8000
-
-    university_name = models.CharField("Name of the University/Campus", max_length=200)
-    avg_travel_distance = models.FloatField("Average travel distance of students")
-    stdev_travel_distance = models.FloatField("Standard deviation of average travel distance of students")
-
-    transport_duration = models.FloatField("Time spent to or from university")
-    transport_dur_file= models.FileField(upload_to="data",blank=True)
-
-    transport_frequency = models.FloatField("Transport frequency in days per week")
-    transport_freq_file= models.FileField(upload_to="data",blank=True)
