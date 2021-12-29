@@ -1,0 +1,23 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<h1>elecCalc - Lecturer mode</h1>
+<p> Welcome to the calculator. This is the homepage. UNDER CONSTRUCTION </p>
+<form action="calculator_selection" method="POST">
+    {% csrf_token %}
+
+    {% if university_list %}
+        <label for="universitys">Choose a university:</label>
+        <select id="universitys" name="universitys">
+            {% for university in university_list %}
+                <option value={{ university.id }}>{{ university.university_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No universities are available.</p><br><br>
+    {% endif %}
+     <input type="submit" value="GO">
+</form>
+{% endblock %}

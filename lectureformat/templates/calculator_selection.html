@@ -1,0 +1,59 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<h1>elecCalc - Lecturer mode</h1>
+<p> You can now select more details for {{ university.university_name }} university </p>
+<form action="calculator_result" method="POST">
+    {% csrf_token %}
+
+    Enter number of students attending lecture: <input type="text" name="num_stud"><br><br>
+    {% if lecture_hall_list %}
+        <label for="lecture_halls">Choose a lecture hall:</label>
+        <select id="lecture_halls" name="lecture_halls">
+            {% for hall in lecture_hall_list %}
+                <option value={{ hall.id }}>{{ hall.hall_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No lecture halls are available.</p><br><br>
+    {% endif %}
+    {% if faculty_list %}
+        <label for="facultys">Choose a faculty:</label>
+        <select id="facultys" name="facultys">
+            {% for faculty in faculty_list %}
+                <option value={{ faculty.id }}>{{ faculty.faculty_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No faculties are available.</p><br><br>
+    {% endif %}
+    {% if streaming_list %}
+        <label for="streaming">Choose a streaming service:</label>
+        <select id="streaming" name="streaming">
+		    <option value="NONE"> None </option>
+            {% for streaming in streaming_list %}
+                <option value={{ streaming.id }}>{{ streaming.streaming_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No streaming services are available.</p><br><br>
+    {% endif %}
+    {% if vod_list %}
+        <label for="vod">Choose a Video-On-Demand service:</label>
+        <select id="vod" name="vod">
+		    <option value="NONE"> None </option>
+            {% for vod in vod_list %}
+                <option value={{ vod.id }}>{{ vod.vod_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No VoD services are available.</p><br><br>
+    {% endif %}
+    <input type="submit">
+</form>
+{% endblock %}

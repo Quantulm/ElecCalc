@@ -9,7 +9,6 @@ from .models import Electronic_Device
 from .models import Transportation
 from .models import Faculty
 from .models import University
-from .models import Survey
 
 admin.site.register(LectureHall)
 admin.site.register(StreamingService)
@@ -19,4 +18,3 @@ admin.site.register(Electronic_Device)
 admin.site.register(Transportation)
 admin.site.register(Faculty)
 admin.site.register(University)
-admin.site.register(Survey)
