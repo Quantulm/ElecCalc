@@ -16,11 +16,11 @@
 <p> Sampling: {{ sampling }} </p>
 <p> Test options: {{ options }} </p>
 <p> </p>
-<p> Selected mode: {{ mode }} </p>
-<br>
-<form action="calculator_home" method="POST">
-    {% csrf_token %} 
-    <input type="submit" name="redirect" value="Start from the beginning">
+<p> Please select the result you want to calculate: </p> 
+<form action="calculator_result" method="POST">
+    {% csrf_token %}
+    
+    <input type="submit" name="action" value="Offline">
+	<input type="submit" name="action" value="Online">
 </form>
-
 {% endblock %}

@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 
@@ -197,7 +196,6 @@ class Survey(models.Model):
     survey_file = models.FileField(upload_to="data")
 
 
-
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
@@ -217,7 +215,8 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
-'@maroua add the test fuction here'
+
+"@maroua add the test fuction here"
 
 if __name__ == "__main__":
     main()

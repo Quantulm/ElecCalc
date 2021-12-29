@@ -3,22 +3,12 @@
 {% block content %}
 
 <h1>elecCalc - Lecturer mode</h1>
-<p> You can now select more details for {{ university.university_name }} university </p>
-<form action="calculator_result" method="POST">
+<input type=button value="Previous Step" onClick="javascript:history.go(-1);">
+<p> You can now select some basic parameters for {{ university.university_name }} </p>
+<form action="calculator_option_selection" method="POST">
     {% csrf_token %}
 
     Enter number of students attending lecture: <input type="text" name="num_stud"><br><br>
-    {% if lecture_hall_list %}
-        <label for="lecture_halls">Choose a lecture hall:</label>
-        <select id="lecture_halls" name="lecture_halls">
-            {% for hall in lecture_hall_list %}
-                <option value={{ hall.id }}>{{ hall.hall_name }}</option>
-            {% endfor %}
-        </select>
-        <br><br>
-    {% else %}
-        <p>No lecture halls are available.</p><br><br>
-    {% endif %}
     {% if faculty_list %}
         <label for="facultys">Choose a faculty:</label>
         <select id="facultys" name="facultys">
@@ -29,6 +19,18 @@
         <br><br>
     {% else %}
         <p>No faculties are available.</p><br><br>
+    {% endif %}
+    {% if lecture_hall_list %}
+        <label for="lecture_halls">Choose a lecture hall:</label>
+        <select id="lecture_halls" name="lecture_halls">
+		    <option value="NONE"> None </option>
+            {% for hall in lecture_hall_list %}
+                <option value={{ hall.id }}>{{ hall.hall_name }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+    {% else %}
+        <p>No lecture halls are available.</p><br><br>
     {% endif %}
     {% if streaming_list %}
         <label for="streaming">Choose a streaming service:</label>
@@ -54,6 +56,6 @@
     {% else %}
         <p>No VoD services are available.</p><br><br>
     {% endif %}
-    <input type="submit">
+    <input type="submit" value="Next">
 </form>
 {% endblock %}

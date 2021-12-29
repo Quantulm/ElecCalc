@@ -4,7 +4,7 @@
 
 <h1>elecCalc - Lecturer mode</h1>
 <p> Welcome to the calculator. This is the homepage. UNDER CONSTRUCTION </p>
-<form action="calculator_selection" method="POST">
+<form action="calculator_base_selection" method="POST">
     {% csrf_token %}
 
     {% if university_list %}
@@ -18,6 +18,6 @@
     {% else %}
         <p>No universities are available.</p><br><br>
     {% endif %}
-     <input type="submit" value="GO">
+     <input type="submit" value="Next">
 </form>
 {% endblock %}

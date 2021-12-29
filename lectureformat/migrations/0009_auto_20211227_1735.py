@@ -6,105 +6,105 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lectureformat', '0008_alter_survey_survey_file'),
+        ("lectureformat", "0008_alter_survey_survey_file"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='electronic_device',
-            old_name='device_consumption',
-            new_name='davice_consumption',
+            model_name="electronic_device",
+            old_name="device_consumption",
+            new_name="davice_consumption",
         ),
         migrations.RenameField(
-            model_name='transportation',
-            old_name='transport_consumption',
-            new_name='trasport_consumption',
+            model_name="transportation",
+            old_name="transport_consumption",
+            new_name="trasport_consumption",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_freq',
+            model_name="faculty",
+            name="elec_dev_freq",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_freq_file',
+            model_name="faculty",
+            name="elec_dev_freq_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_type',
+            model_name="faculty",
+            name="elec_dev_type",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_type_file',
+            model_name="faculty",
+            name="elec_dev_type_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_use',
+            model_name="faculty",
+            name="elec_dev_use",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='elec_dev_use_file',
+            model_name="faculty",
+            name="elec_dev_use_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='faculty_name_file',
+            model_name="faculty",
+            name="faculty_name_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='lecture_freq_file',
+            model_name="faculty",
+            name="lecture_freq_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='lecture_frequency',
+            model_name="faculty",
+            name="lecture_frequency",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='live_lec',
+            model_name="faculty",
+            name="live_lec",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='live_lec_file',
+            model_name="faculty",
+            name="live_lec_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='online_lec_file',
+            model_name="faculty",
+            name="online_lec_file",
         ),
         migrations.RemoveField(
-            model_name='faculty',
-            name='online_lec_freq',
+            model_name="faculty",
+            name="online_lec_freq",
         ),
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_dur_file',
+            model_name="transportation",
+            name="transport_dur_file",
         ),
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_duration',
+            model_name="transportation",
+            name="transport_duration",
         ),
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_freq_file',
+            model_name="transportation",
+            name="transport_freq_file",
         ),
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_frequency',
+            model_name="transportation",
+            name="transport_frequency",
         ),
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_name_file',
+            model_name="transportation",
+            name="transport_name_file",
         ),
         migrations.AlterField(
-            model_name='faculty',
-            name='dev_usage',
-            field=models.FloatField(verbose_name='Usage of electronic devices (%)'),
+            model_name="faculty",
+            name="dev_usage",
+            field=models.FloatField(verbose_name="Usage of electronic devices (%)"),
         ),
         migrations.AlterField(
-            model_name='faculty',
-            name='lec_length',
-            field=models.IntegerField(verbose_name='Average lecture length (min)'),
+            model_name="faculty",
+            name="lec_length",
+            field=models.IntegerField(verbose_name="Average lecture length (min)"),
         ),
         migrations.AlterField(
-            model_name='survey',
-            name='survey_file',
-            field=models.FileField(upload_to='data'),
+            model_name="survey",
+            name="survey_file",
+            field=models.FileField(upload_to="data"),
         ),
     ]

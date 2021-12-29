@@ -5,6 +5,21 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("calculator", views.calculator, name="calculator"),
-    path("lectureformat", views.lectureformat, name="lectureformat"),
+    path("calculator_home", views.calculator_home, name="calculator_home"),
+    path(
+        "calculator_base_selection",
+        views.calculator_base_selection,
+        name="calculator_base_selection",
+    ),
+    path(
+        "calculator_option_selection",
+        views.calculator_option_selection,
+        name="calculator_option_selection",
+    ),
+    path(
+        "calculator_result_selection",
+        views.calculator_result_selection,
+        name="calculator_result_selection",
+    ),
+    path("calculator_result", views.calculator_result, name="calculator_result"),
 ]
