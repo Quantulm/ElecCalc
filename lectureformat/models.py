@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 
+import numpy as np
+
 # Designation of file storage locations
 fs = FileSystemStorage(location="data")
 
@@ -193,7 +195,15 @@ class Faculty(models.Model):
     def __str__(self):
         return self.faculty_name
 
+    def get_device_type_statistics(self):
+        if False:  # TODO Remove
+            if self.elec_dev_use_file is None:
+                raise AttributeError("No device use file found")
+        # TODO implement properly once file format is known
+        return np.random.choice([0, 1], 255)
+
     def get_consumption(self):
+        # TODO Not sure if a faculty has a consumption.
         return 8000
 
     university = models.ForeignKey(
@@ -229,4 +239,7 @@ class Faculty(models.Model):
     elec_dev_freq_file = models.FileField(upload_to="data", blank=True)
 
     elec_dev_type = models.CharField("Device type by faculty", max_length=200)
+    elec_dev_type = models.ForeignKey(
+        Electronic_Device, on_delete=models.CASCADE, blank=True, null=True
+    )
     elec_dev_type_file = models.FileField(upload_to="data", blank=True)

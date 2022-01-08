@@ -13,6 +13,7 @@ from PIL import Image
 import numpy as np
 import lectureformat.scripts as s
 
+from .lecture import *
 from .models import *
 
 # Create your views here.
@@ -106,9 +107,10 @@ def calculator_option_selection(request):
     return HttpResponse(template.render(context, request))
 
 
-def calculator_result_selection(request):
-    options = ["option1", "option2", "option3"]
+options = ["random_living", "random_devices", "option1"]
 
+
+def calculator_result_selection(request):
     # Get option selections an save them
     sampling = request.POST["sampling"]
     request.session["sampling"] = sampling
@@ -158,36 +160,49 @@ def calculator_result_selection(request):
 
 def calculator_result(request):
 
-    options = ["option1", "option2", "option3"]
-
     mode = request.POST["action"]
+    if mode == "Offline":
+        mode = "offline"
+    elif mode == "Online - Streaming":
+        mode = "online-streaming"
+    elif mode == "Online - VoD":
+        mode = "online-vod"
+    elif mode == "Hybrid - Streaming":
+        mode = "hybrid-streaming"
+    elif mode == "Hybrid - VoD":
+        mode = "hybrid-vod"
+    else:
+        raise ValueError("Specified mode not supported")
+
+    university = University.objects.get(pk=request.session.get("university"))
+    faculty = Faculty.objects.get(pk=request.session.get("faculty"))
+    num_stud = request.session.get("num")
+    sampling = request.session.get("sampling")
 
     context = {
-        "university": University.objects.get(
-            pk=request.session.get("university")
-        ).university_name,
-        "faculty": Faculty.objects.get(pk=request.session.get("faculty")).faculty_name,
-        "num": request.session.get("num"),
-        "sampling": request.session.get("sampling"),
+        "university": university.university_name,
+        "faculty": faculty.faculty_name,
+        "num": num_stud,
+        "sampling": sampling,
         "mode": mode,
     }
     if request.session.get("lecture_hall") is not None:
-        context["lecture_hall"] = LectureHall.objects.get(
-            pk=request.session.get("lecture_hall")
-        ).hall_name
+        lecture_hall = LectureHall.objects.get(pk=request.session.get("lecture_hall"))
+        context["lecture_hall"] = lecture_hall.hall_name
     else:
+        lecture_hall = None
         context["lecture_hall"] = "None"
     if request.session.get("streaming") is not None:
-        context["streaming"] = StreamingService.objects.get(
-            pk=request.session.get("streaming")
-        ).streaming_name
+        streaming = StreamingService.objects.get(pk=request.session.get("streaming"))
+        context["streaming"] = streaming.streaming_name
     else:
+        streaming = None
         context["streaming"] = "None"
     if request.session.get("vod") is not None:
-        context["vod"] = VideoOnDemandService.objects.get(
-            pk=request.session.get("vod")
-        ).vod_name
+        vod = VideoOnDemandService.objects.get(pk=request.session.get("vod"))
+        context["vod"] = vod.vod_name
     else:
+        vod = None
         context["vod"] = "None"
 
     opts = []
@@ -197,6 +212,23 @@ def calculator_result(request):
 
     context["options"] = ", ".join(opts)
 
+    lecture = Lecture(
+        num_stud=int(num_stud),
+        hall=lecture_hall,
+        streaming=streaming,
+        vod=vod,
+        university=university,
+        faculty=faculty,
+        living=None,
+        device=None,
+        transport=None,
+        options=opts,
+    )
+
+    consumption, stat_uncertainty = lecture.get_consumption(mode, sampling.lower())
+    context["consumption"] = "{:.2f} +/- {:.2f} kWh".format(
+        consumption, stat_uncertainty
+    )
     return render(request, "calculator_result.html", context)
 
 

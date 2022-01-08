@@ -2,8 +2,11 @@ import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 import pandas as pd
 import corner
+
+from .models import *
 
 try:
     import emcee
@@ -36,6 +39,8 @@ class Lecture:
             Electronic_Device object
         - transport
             Transport object
+        - options
+            List of str conatining all selected options
         All other relevant information will be automatically
         retrieved from the database based on survey statistics
 
@@ -48,7 +53,7 @@ class Lecture:
         # Check if number of students is valid
         if num_stud < 0:
             raise ValueError(
-                    "Show me a lecture with negative number of students attending"
+                "Show me a lecture with negative number of students attending"
             )
         else:
             self.num_stud = num_stud
@@ -70,51 +75,116 @@ class Lecture:
                 self.device = value
             elif key == "transport":
                 self.transport = value
+            elif key == "options":
+                self.options = value
             else:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         return
 
-    def get_consumption(online, sampling="simple", max_onsite):
+    def get_random_living_consumption(self, living_list, living_random_length=100):
+        """
+        Gets a randomised value for the consumption of the living arrangements
+        """
+        cons = []
+        l_cons = []
+        for l in living_list:
+            l_cons.append(l.get_consumption())
+        indices = np.arange(len(l_cons))
+        for i in range(living_random_length):
+            rnd_cons = 0
+            choices = np.random.choice(indices, self.num_stud)
+            for choice in choices:
+                rnd_cons += l_cons[choice]
+            cons.append(rnd_cons)
+        # Use median instead of mean in case of tailed distribution
+        return np.median(cons), np.std(cons)
+
+    def get_random_device_consumption(
+        self, device_list, dev_stat, sampling="simple", device_random_length=100
+    ):
+        cons = []
+        d_cons = []
+        for d in device_list:
+            d_cons.append(d.get_consumption())
+        # TODO get proper kernel
+        kernel = stats.gaussian_kde(dev_stat)
+        if sampling == "simple":
+            for i in range(device_random_length):
+                rnd_cons = 0
+                choices = np.rint(kernel.resample(self.num_stud)[0]) % len(d_cons)
+                for choice in choices:
+                    rnd_cons += d_cons[int(choice)]
+                cons.append(rnd_cons)
+        elif sampling == "mcmc":
+            if emcee is None:
+                raise ImportError("Emcee not imported")
+
+            def log_prob(x):
+                return kernel.logpdf(x)
+
+            ndim, nwalkers = 1, self.num_stud
+            p0 = np.random.randn(nwalkers, ndim)
+
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob)
+            sampler.run_mcmc(p0, 1000)
+            samples = np.rint(sampler.get_chain(flat=True)[:, 0]) % len(d_cons)
+            for i in range(device_random_length):
+                random_samples = np.random.choice(
+                    np.arange(len(samples)), self.num_stud
+                )
+                choices = samples[random_samples]
+                rnd_cons = 0
+                for choice in choices:
+                    rnd_cons += d_cons[int(choice)]
+                cons.append(rnd_cons)
+        return np.median(cons), np.std(cons)
+
+    def get_consumption(
+        self,
+        mode,
+        sampling="simple",
+        living_random_length=100,
+        device_random_length=100,
+    ):
         """
         Basic function to get the consumption of a lecture
 
         Parameters
         ----------
-        online : str
+        mode : str
             Determines mode of lecture. Recognised modes:
-            offline, online, hybrid.
+            offline, online-streaming, online-vod,
+            hybrid-streaming, hybrid-vod.
         sampling : str
             Method for samling. Either 'simple' or 'mcmc'.
-        max_onsite : int
-            Maximum number of students allowed onsite. Has to be
-            given when online="hybrid". Otherwise it is ignored.
+        living_random_length : int
+            Number of randomised draws for the living situation
+        device_random_length : int
+            Number of randomised draws for the devices
 
         Returns
         -------
         consumption : float
             Consumption of lecture in kW
+        stat_uncertainty : float
+            Statistical uncertainty from sampling procedure in kWh
 
         """
 
         # Check if lecture format is specified correctly
-        if online not in ["online", "offline", "hybrid"]:
-            raise ValueError(
-                    "Specified lecture format not recognized"
-            )
-
-        # Check is max_onsite is set for hybrid format
-        if online == "hybrid" and max_onsite is None:
-            raise AttributeError(
-                "Lecture is specified as hybrid, but maximum number of onsite students is missing"
-            )
-
+        if mode not in [
+            "online-streaming",
+            "online-vod",
+            "offline",
+            "hybrid-streaming",
+            "hybrid-vod",
+        ]:
+            raise ValueError("Specified lecture format not recognized")
 
         # Check if emcee could be imported if sampling is set to mcmc
         if sampling not in ["simple", "mcmc"]:
-            raise ValueError(
-                    "Specified sampling mode not recognized"
-            )
+            raise ValueError("Specified sampling mode not recognized")
         if sampling == "mcmc" and emcee is None:
             raise ImportError(
                 "Sampling is set to mcmc, but emcee could not be imported"
@@ -122,29 +192,77 @@ class Lecture:
 
         # TODO remove Test output
         #### This output is a DUMMY until function is complete
-        if online == "online":
-            return np.random.rand(1)[0] * 60 * self.num_stud
-        elif online == "offline":
-            return np.random.rand(1)[0] * 50 * self.num_stud
-        elif online == "hybrid":
-            return np.random.rand(1)[0] * 40 * self.num_stud
+        if mode == "offline":
+            return np.random.rand(1)[0] * 50 * self.num_stud, 0
+        elif mode == "hybrid-streaming":
+            return np.random.rand(1)[0] * 40 * self.num_stud, 0
+        elif mode == "hybrid-vod":
+            return np.random.rand(1)[0] * 40 * self.num_stud, 0
 
-        if online == "online":
+        if mode == "online-streaming" or mode == "online-vod":
             # Calculation of the consumption for an online lecture
             # TODO Make sure that the calculation makes sense
 
-            # Get all available Living situation
-            # TODO refine to only select living situations that are
-            # relevant for selecte university
-            livings = Living_Situation.objects.all()
+            # Streaming service
+            if mode == "online-streaming":
+                if self.streaming is None:
+                    # TODO Redirect to proper error page
+                    raise AttributeError("Streaming service not set")
+                # TODO Implemet correct function call
+                consumption = self.streaming.get_consumption()
+            elif mode == "online-vod":
+                if self.vod is None:
+                    # TODO Redirect to proper error page
+                    raise AttributeError("VoD service not set")
+                # TODO Implemet correct function call
+                consumption = self.vod.get_consumption()
+            stat_uncertainty = 0
 
-            # Get all possible consumptions
-            living_consumptions = []
-            for l in living:
-                living_consumptions.append(l.get_consumption())
+            # Living situation
+            if self.living is None:
+                # Get randomised living situations
+                living_list = Living_Situation.objects.order_by("living_name")
+                if "random_living" in self.options:
+                    c, s = self.get_random_living_consumption(
+                        living_list, living_random_length=living_random_length
+                    )
+                    consumption += c
+                    stat_uncertainty += s ** 2
+                else:
+                    for l in living_list:
+                        l.get_consumption() * self.num_stud / len(living_list)
+            else:
+                consumption += self.living.get_consumption() * self.num_stud
 
-            # TODO For simple sampling use kde.resample()
+            # Electronic devices
+            if self.device is None:
+                # Get randomised devices
+                device_list = Electronic_Device.objects.order_by("device_name")
+                if "random_device" in self.options:
+                    dev_stat = np.arange(len(device_list))
+                    c, s = self.get_random_device_consumption(
+                        device_list,
+                        dev_stat,
+                        sampling=sampling,
+                        device_random_length=device_random_length,
+                    )
+                elif self.faculty is not None:
+                    if self.faculty.elec_dev_type_file is not None:
+                        dev_stat = self.faculty.get_device_type_statistics()
+                        c, s = self.get_random_device_consumption(
+                            device_list,
+                            dev_stat,
+                            sampling=sampling,
+                            device_random_length=device_random_length,
+                        )
+                    else:
+                        dev = self.faculty.elec_dev_type
+                        c = dev.get_consumption() * self.num_stud
+                else:
+                    raise AttributeError("Faculty must be selected")
+                consumption += c
+                stat_uncertainty += s
+            else:
+                consumption += self.device.get_consumption() * self.num_stud
 
-            return
-
-            consumption = self.streaming.get_consumption(num_stud)
+            return consumption, stat_uncertainty
