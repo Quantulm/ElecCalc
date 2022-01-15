@@ -33,6 +33,8 @@ Early prototype for TUMJA: Team Climates calculator project
     `conda create --name eleccalc python=3.9`  
     `conda activate eleccalc`
     `conda install numpy`  
+	`conda install scipy`
+	`conda install corner`
     `conda install pandas`  
      `conda install django`  
      `conda install matplotlib` <- in case this fails run: `pip install matplotlib`  
