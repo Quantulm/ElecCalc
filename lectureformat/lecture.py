@@ -1,8 +1,10 @@
 import warnings
+import io
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from scipy import interpolate
 import pandas as pd
 import corner
 
@@ -80,7 +82,69 @@ class Lecture:
             else:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
+        self.figure = None
+
         return
+
+    def get_hybrid_figure(self, grid, cons, cons_std):
+        fig = plt.figure()
+        p = max(grid)
+
+        def online(x):
+            return x
+
+        def onsite(x):
+            return p - x
+
+        plt.plot(grid, cons, label="Median")
+        plt.fill_between(
+            grid, cons + cons_std, cons - cons_std, alpha=0.3, label=r"1$\sigma$"
+        )
+        plt.legend()
+        plt.ylabel("Consumption per lecture (kWh)")
+        plt.xlabel("Number of students joining online")
+        plt.grid()
+
+        minind = np.where(cons == min(cons))
+        min_cons = cons[minind]
+        min_std = cons_std[minind]
+
+        secax = plt.gca().secondary_xaxis("top", functions=(online, onsite))
+        secax.set_xlabel("Number of students joining on-site")
+
+        plt.tight_layout()
+
+        # these are matplotlib.patch.Patch properties
+        props = dict(boxstyle="round", alpha=0.5)
+
+        textstr = (
+            "Optimal mode:\n- %d students online\n- %d students on-site\n- Total consumption: %.2f $\pm$ %.2f$\,$kWh"
+            % (grid[minind], max(grid) - grid[minind], min_cons, min_std)
+        )
+
+        # place a text box in upper left in axes coords
+        txt = plt.gca().text(
+            1.05,
+            1.15,
+            textstr,
+            transform=plt.gca().transAxes,
+            fontsize=14,
+            verticalalignment="top",
+            bbox=props,
+        )
+
+        imgdata = io.StringIO()
+        fig.savefig(
+            imgdata,
+            format="svg",
+            bbox_inches="tight",
+            bbox_extra_artists=(txt,),
+            dpi=600,
+        )
+        imgdata.seek(0)
+
+        data = imgdata.getvalue()
+        return data
 
     def get_random_living_consumption(self, living_list, living_random_length=100):
         """
@@ -157,18 +221,23 @@ class Lecture:
             t_cons.append(t.get_consumption())
             t_conv.append(t.transport_dist)
         # TODO get proper kernel
-        
-        kernel = stats.gaussian_kde(
-            np.vstack([mot, t_dur, t_freq, lec_pw])
-        )
+
+        kernel = stats.gaussian_kde(np.vstack([mot, t_dur, t_freq, lec_pw]))
 
         if sampling == "simple":
             for i in range(transport_random_length):
                 rnd_cons = 0
                 choices, duration, freq, lpw = kernel.resample(self.num_stud)
-                choices = np.rint(choices)
+                choices = np.rint(choices) % len(t_cons)
                 for j, choice in enumerate(choices):
-                    rnd_cons += t_cons[int(choice)] * t_conv[int(choice)] * duration[j] * freq[j] / lpw[j]  
+                    rnd_cons += (
+                        t_cons[int(choice)]
+                        * t_conv[int(choice)]
+                        * duration[j]
+                        * freq[j]
+                        * 2
+                        / lpw[j]
+                    )
                 cons.append(rnd_cons)
         elif sampling == "mcmc":
             if emcee is None:
@@ -185,13 +254,20 @@ class Lecture:
             samples = sampler.get_chain(flat=True)
             for i in range(transport_random_length):
                 random_samples = np.random.choice(
-                        np.arange(len(samples[:,0])), self.num_stud
+                    np.arange(len(samples[:, 0])), self.num_stud
                 )
                 choices, duration, freq, lpw = samples[random_samples].T
                 choices = np.rint(choices) % len(t_cons)
                 rnd_cons = 0
                 for j, choice in enumerate(choices):
-                    rnd_cons += t_cons[int(choice)] * t_conv[int(choice)] * duration[j] * freq[j] / lpw[j]  
+                    rnd_cons += (
+                        t_cons[int(choice)]
+                        * t_conv[int(choice)]
+                        * duration[j]
+                        * freq[j]
+                        * 2
+                        / lpw[j]
+                    )
                 cons.append(rnd_cons)
 
         return np.median(cons), np.std(cons)
@@ -203,6 +279,7 @@ class Lecture:
         living_random_length=100,
         device_random_length=100,
         transport_random_length=100,
+        hybrid_grid=20,
     ):
         """
         Basic function to get the consumption of a lecture
@@ -221,6 +298,8 @@ class Lecture:
             Number of randomised draws for the devices
         transport_random_length : int
             Number of randomised draws for the transportation
+        hybrid_grid : int
+            Number of grid points on which hybrid fractions are calculated
 
 
         Returns
@@ -249,13 +328,8 @@ class Lecture:
             raise ImportError(
                 "Sampling is set to mcmc, but emcee could not be imported"
             )
-
-        # TODO remove Test output
-        #### This output is a DUMMY until function is complete
-        if mode == "hybrid-streaming":
-            return np.random.rand(1)[0] * 40 * self.num_stud, 0
-        elif mode == "hybrid-vod":
-            return np.random.rand(1)[0] * 40 * self.num_stud, 0
+        if self.num_stud < 10 and sampling == "mcmc":
+            sampling = "simple"
 
         if mode == "online-streaming" or mode == "online-vod":
             # Calculation of the consumption for an online lecture
@@ -390,7 +464,99 @@ class Lecture:
             else:
                 consumption += self.device.get_consumption() * self.num_stud
 
-        self.num_stud = num_stud_bak
+            self.num_stud = num_stud_bak
 
-        return consumption, np.sqrt(stat_uncertainty)
+            return consumption, np.sqrt(stat_uncertainty)
 
+        if mode == "hybrid-streaming" or mode == "hybrid-vod":
+
+            if mode == "hybrid-streaming":
+                aux_mode = "online-streaming"
+            else:
+                aux_mode = "online-vod"
+
+            # Create student/ hyprid fraction grid
+            if self.num_stud > hybrid_grid:
+                grid = np.linspace(0, self.num_stud, hybrid_grid, dtype=int)
+            else:
+                grid = np.linspace(0, self.num_stud, self.num_stud, dtype=int)
+
+            # Calculate hybrid consumption for each gridpoint
+            num_stud_bak = self.num_stud
+
+            cons = []
+            cons_std = []
+            for p in grid:
+                if p == 0:
+                    self.num_stud = num_stud_bak
+                    c, s = self.get_consumption(
+                        "offline",
+                        sampling=sampling,
+                        living_random_length=living_random_length,
+                        device_random_length=device_random_length,
+                        transport_random_length=transport_random_length,
+                        hybrid_grid=hybrid_grid,
+                    )
+                    cons.append(c)
+                    cons_std.append(s)
+                elif p == num_stud_bak:
+                    self.num_stud = p
+                    c, s = self.get_consumption(
+                        aux_mode,
+                        sampling=sampling,
+                        living_random_length=living_random_length,
+                        device_random_length=device_random_length,
+                        transport_random_length=transport_random_length,
+                        hybrid_grid=hybrid_grid,
+                    )
+                    cons.append(c)
+                    cons_std.append(s)
+                else:
+                    # Onsite contribution
+                    self.num_stud = num_stud_bak - p
+                    c_offline, s_offline = self.get_consumption(
+                        "offline",
+                        sampling=sampling,
+                        living_random_length=living_random_length,
+                        device_random_length=device_random_length,
+                        transport_random_length=transport_random_length,
+                        hybrid_grid=hybrid_grid,
+                    )
+
+                    # Online Contribution
+                    self.num_stud = p
+                    c_online, s_online = self.get_consumption(
+                        aux_mode,
+                        sampling=sampling,
+                        living_random_length=living_random_length,
+                        device_random_length=device_random_length,
+                        transport_random_length=transport_random_length,
+                        hybrid_grid=hybrid_grid,
+                    )
+
+                    cons.append(c_offline + c_online)
+                    cons_std.append(np.sqrt(s_offline ** 2 + s_online ** 2))
+
+            # Reset number of studenst
+            self.num_stud = num_stud_bak
+
+            # Find optimal hybrid fraction
+            cons = np.array(cons)
+            cons_std = np.array(cons_std)
+
+            # Interpolate consumption values
+            x = np.arange(self.num_stud + 1)
+            func = interpolate.interp1d(grid, cons)
+            func_std = interpolate.interp1d(grid, cons_std)
+
+            cons = func(x)
+            cons_std = func_std(x)
+
+            min_ind = np.where(cons == min(cons))
+            frac = grid[min_ind] / self.num_stud
+            min_cons = cons[min_ind]
+            min_std = cons_std[min_ind]
+
+            self.figure = self.get_hybrid_figure(x, cons, cons_std)
+
+            return min_cons[0], min_std[0]

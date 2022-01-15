@@ -226,9 +226,12 @@ def calculator_result(request):
     )
 
     consumption, stat_uncertainty = lecture.get_consumption(mode, sampling.lower())
+
     context["consumption"] = "{:.2f} +/- {:.2f} kWh".format(
         consumption, stat_uncertainty
     )
+    if lecture.figure is not None:
+        context["figure"] = lecture.figure
     return render(request, "calculator_result.html", context)
 
 

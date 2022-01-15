@@ -16,11 +16,15 @@ class University(models.Model):
         return self.university_name
 
     def get_transport_statistics(self):
-        if False: # TODO Remove
-            # TODO Implement properly once file format is known 
+        if False:  # TODO Remove
+            # TODO Implement properly once file format is known
             pass
-        
-        return np.random.choice([0, 1], 255), np.random.rand(255) * 30 + 15, np.random.choice([1,2,3,4,5], 255)
+
+        return (
+            np.random.choice([0, 1], 255),
+            np.random.rand(255) * 30 + 15,
+            np.random.choice([1, 2, 3, 4, 5], 255),
+        )
 
     def get_consumption(self):
         return 8000
@@ -36,7 +40,9 @@ class University(models.Model):
 
     transport_frequency = models.FloatField("Transport frequency in days per week")
     transport_freq_file = models.FileField(upload_to="data", blank=True)
-    transport_name_file = models.FileField("Means of transportation", upload_to="data", blank=True)
+    transport_name_file = models.FileField(
+        "Means of transportation", upload_to="data", blank=True
+    )
 
 
 class LectureHall(models.Model):
@@ -221,7 +227,7 @@ class Faculty(models.Model):
 
     def get_lecture_statistics(self):
         # TODO Implement properly
-        return np.random.choice([1,2,3,4,5,6,7], 255)
+        return np.random.choice([1, 2, 3, 4, 5, 6, 7], 255)
 
     def get_consumption(self):
         # TODO Not sure if a faculty has a consumption.

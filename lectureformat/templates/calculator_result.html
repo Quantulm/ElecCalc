@@ -21,6 +21,8 @@
 <h1> Your Result: </h1>
 <br>
 <p> {{ consumption }} </p>
+<div> {{ figure|safe }} </div>
+<br>
 <form action="calculator_home" method="POST">
     {% csrf_token %} 
     <input type="submit" name="redirect" value="Start from the beginning">

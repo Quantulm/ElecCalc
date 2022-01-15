@@ -1,3 +1,5 @@
 eleccalcenv/
 __pycache__
 .idea
+data/*
+lectureformat/migrations/*

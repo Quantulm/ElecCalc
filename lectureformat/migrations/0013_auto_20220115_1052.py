@@ -6,17 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lectureformat', '0012_alter_faculty_elec_dev_type'),
+        ("lectureformat", "0012_alter_faculty_elec_dev_type"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='transportation',
-            name='transport_name_file',
+            model_name="transportation",
+            name="transport_name_file",
         ),
         migrations.AddField(
-            model_name='university',
-            name='transport_name_file',
-            field=models.FileField(blank=True, upload_to='data', verbose_name='Means of transportation'),
+            model_name="university",
+            name="transport_name_file",
+            field=models.FileField(
+                blank=True, upload_to="data", verbose_name="Means of transportation"
+            ),
         ),
     ]
