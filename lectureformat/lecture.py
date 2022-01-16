@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from scipy import interpolate
 import pandas as pd
-import corner
 
 from .models import *
 
