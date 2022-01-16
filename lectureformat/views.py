@@ -123,4 +123,26 @@ def result(request):
     context = {'graph' : []}
     context['graph'] = return_graph()
     context['result'] = str(5000)
-    return render(request, 'result.html', context)
+    return render(request, 'result_student_calc.html', context)
+
+
+def student_calc(request):    
+    return render(request, "student_calc.html")
+
+def result_student_calc(request):
+    means = request.POST['commute_means']
+    ltime = request.POST['commute_time']
+    lecture = request.POST['lecture']
+    Co2 = means*time
+    fig = plt.figure()
+    plt.text([1,1],str(C02))
+
+    imgdata = io.StringIO()
+    fig.savefig(imgdata, format='svg')
+    imgdata.seek(0)
+
+    data = imgdata.getvalue()
+    context = {'graph' : []}
+    context['graph'] = return_graph()
+    context['result'] = str(5000)
+    render(request,"result_student_calc.html")

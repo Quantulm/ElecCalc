@@ -3,6 +3,7 @@ from django.test import TestCase
 import pandas as pd
 import lecture as lec
 import matplotlib.pyplot as plt
+import emcee
 
 # Create your tests here.
 def lecture_test_onsite(n_student, frac):

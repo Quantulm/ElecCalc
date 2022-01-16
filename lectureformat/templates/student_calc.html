@@ -1,0 +1,15 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<h1>Student calculator</h1>
+<form action="result_student_calc" method="POST">
+    {% csrf_token %}
+
+    Enter commute means <input type="text" name="commute_means"><br><br>
+    Enter time spent on commute: <input type="text" name="commute_time">%<br><br>
+    Specify lecture: <input type="text" name="lecture"><br><br>
+    <input type="submit">
+</form>
+
+{% endblock %}

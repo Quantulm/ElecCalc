@@ -1,0 +1,26 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<h1> Lecture type preference: {{result}} </h1>
+<div style="width:1000;height:100">
+    {{ graph|safe }}
+</div>
+<p><a href="/">Back to the home screen</a></p>
+{% endblock %}
+
+<!-- <!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Results</title>
+    </head>
+    <body>
+        <p>A simple plot</p>
+        
+        <p>Optimal lecture format:</p>
+        <div>
+            {{ result }}
+        </div>
+    </body>
+</html> -->
