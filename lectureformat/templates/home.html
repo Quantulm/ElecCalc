@@ -1,11 +1,13 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "admin\css\styles.css" %}">
     <title>Calculator</title>
 </head>
-<body bgcolor="#92ea43">
+<body>
     {% block content %}
     <p> Welcome to ElecCalc. This is an early prototpye of the project group ElecTum of the TUM: Junge Akademie.</p>
     <p> Here you can find our <a href="https://www.ja.tum.de/climate/">Website</a> and learn more about our project.</p>
