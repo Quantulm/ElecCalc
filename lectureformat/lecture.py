@@ -352,7 +352,7 @@ class Lecture:
             # Living situation
             if self.living is None:
                 # Get randomised living situations
-                living_list = Living_Situation.objects.order_by("living_name")
+                living_list = LivingSituation.objects.order_by("living_name")
                 if "random_living" in self.options:
                     c, s = self.get_random_living_consumption(
                         living_list, living_random_length=living_random_length
@@ -368,7 +368,7 @@ class Lecture:
             # Electronic devices
             if self.device is None:
                 # Get randomised devices
-                device_list = Electronic_Device.objects.order_by("device_name")
+                device_list = ElectronicDevice.objects.order_by("device_name")
                 if "random_device" in self.options:
                     dev_stat = np.arange(len(device_list))
                     c, s = self.get_random_device_consumption(
@@ -435,7 +435,7 @@ class Lecture:
             self.num_stud = int(np.rint(num_stud_bak * self.faculty.dev_usage))
             if self.device is None:
                 # Get randomised devices
-                device_list = Electronic_Device.objects.order_by("device_name")
+                device_list = ElectronicDevice.objects.order_by("device_name")
                 if "random_device" in self.options:
                     dev_stat = np.arange(len(device_list))
                     c, s = self.get_random_device_consumption(
