@@ -239,4 +239,9 @@ def calculator_result(request):
     )
     if lecture.figure is not None:
         context["figure"] = lecture.figure
+
+    context["debug_figures"] = []
+    for key in list(lecture.debug_figures.keys()):
+        context["debug_figures"].append(lecture.debug_figures[key])
+
     return render(request, "calculator_result.html", context)

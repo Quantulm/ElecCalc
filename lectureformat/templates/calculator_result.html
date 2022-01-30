@@ -23,6 +23,10 @@
 <p> {{ consumption }} </p>
 <div> {{ figure|safe }} </div>
 <br>
+{% for fig in debug_figures%}
+    <div> {{ fig|safe }} </div>
+{% endfor %}
+<br>
 <form action="calculator_home" method="POST">
     {% csrf_token %} 
     <input type="submit" name="redirect" value="Start from the beginning">

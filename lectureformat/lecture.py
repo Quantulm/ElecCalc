@@ -82,6 +82,7 @@ class Lecture:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         self.figure = None
+        self.debug_figures = {}
 
         return
 
@@ -192,7 +193,7 @@ class Lecture:
             p0 = np.random.randn(nwalkers, ndim)
 
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob)
-            sampler.run_mcmc(p0, 1000, progress=True)
+            sampler.run_mcmc(p0, 1000)
             samples = np.rint(sampler.get_chain(flat=True)[:, 0]) % len(d_cons)
             for i in range(device_random_length):
                 random_samples = np.random.choice(
@@ -213,6 +214,7 @@ class Lecture:
         lec_pd,
         sampling="simple",
         transport_random_length=100,
+        debug=False,
     ):
         cons = []
 
@@ -257,6 +259,29 @@ class Lecture:
                         / lec_pd
                     )
                 cons.append(rnd_cons)
+
+            if debug:
+                try:
+                    import corner
+
+                    fig = corner.corner(
+                        samples,
+                        labels=["MoT", "Duration (min)"],
+                    )
+                    imgdata = io.StringIO()
+                    fig.savefig(
+                        imgdata,
+                        format="svg",
+                        bbox_inches="tight",
+                        dpi=600,
+                    )
+                    imgdata.seek(0)
+
+                    data = imgdata.getvalue()
+                    self.debug_figures["transport"] = data
+
+                except ImportError:
+                    warnings.warn("Corner module not found")
 
         return np.median(cons), np.std(cons)
 
@@ -397,6 +422,11 @@ class Lecture:
             else:
                 beamer = False
 
+            if "debug" in self.options:
+                debug = True
+            else:
+                debug = False
+
             consumption = self.hall.get_consumption(time, beamer=beamer)
             stat_uncertainty = 0
 
@@ -414,6 +444,7 @@ class Lecture:
                 lec_pd=lec_pd,
                 sampling=sampling,
                 transport_random_length=transport_random_length,
+                debug=debug,
             )
 
             consumption += c
