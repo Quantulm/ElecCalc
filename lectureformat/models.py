@@ -19,18 +19,13 @@ class University(models.Model):
         If files have not been specified, Gaussian statistic with 10% uncertainty
         will be used instead
         """
-        if transport_dur_file is not None:
-            t_dur = np.genfromtxt(transport_dur_file)
+        if self.transport_dur_file is not None:
+            t_dur_list = np.genfromtxt(self.transport_dur_file)
         else:
-            t_dur = np.random.normal(
-                loc=transport_duration, scale=0.1 * transport_duration, size=100
-            )
-
-        if transport_freq_file is not None:
-            t_freq = np.genfromtxt(transport_freq_file)
-        else:
-            t_freq = np.random.normal(
-                loc=transport_frequency, scale=0.1 * transport_frequency, size=100
+            t_dur_list = np.random.normal(
+                loc=self.transport_duration,
+                scale=0.1 * self.transport_duration,
+                size=100,
             )
 
         # Get list with available MoT for conversion from string to index
@@ -39,20 +34,22 @@ class University(models.Model):
         )
         index_dict = {}
         for i, m in enumerate(transport_list):
-            index_dict[m] = i
+            index_dict[m.transport_name] = i
         mot = []
-        if transport_name_file is not None:
-            mot_str = np.genfromtxt(transport_name_file, dtype=str)
+        t_dur = []
+        if self.transport_name_file is not None:
+            mot_list = np.genfromtxt(self.transport_name_file, dtype=str, delimiter=",")
         else:
-            mot_str = [transport_name.transport_name]
+            mot_list = [transport_name] * len(t_dur_list)
 
-        for e in mot_str:
+        for i, e in enumerate(mot_list):
             try:
                 mot.append(index_dict[e])
+                t_dur.append(t_dur_list[i])
             except KeyError:
                 continue
 
-        return np.array(mot), t_dur, t_freq
+        return np.array(mot), np.array(t_dur)
 
     university_name = models.CharField("Name of the University/Campus", max_length=200)
 
@@ -61,19 +58,23 @@ class University(models.Model):
         "Time spent to or from university - statistic file",
         upload_to="data",
         blank=True,
+        null=True,
     )
 
-    transport_frequency = models.FloatField("Transport frequency (days/week)")
-    transport_freq_file = models.FileField(
-        "Transport frequency - statistic file", upload_to="data", blank=True
-    )
+    #    transport_frequency = models.FloatField("Transport frequency (days/week)")
+    #    transport_freq_file = models.FileField(
+    #        "Transport frequency - statistic file", upload_to="data", blank=True, null=True
+    #    )
 
-    transport_name = models.ForeignKey(
-        Transportation,
-        on_delete=models.CASCADE,
+    transport_name = models.CharField(
+        "Most used mean of transport",
+        max_length=200,
     )
     transport_name_file = models.FileField(
-        "Means of transportation - statistic file", upload_to="data", blank=True
+        "Means of transportation - statistic file",
+        upload_to="data",
+        blank=True,
+        null=True,
     )
 
 
@@ -99,21 +100,21 @@ class LectureHall(models.Model):
 
         if beamer:
             self.base_consumption = (
-                self.light_blackboard_count * self.light_blackboard_consumption
-                + self.light_stairs_count * self.light_stairs_consumption
-                + self.beamer_count * self.beamer_consumption
-                + self.amplifier_count * self.amplifier_consumption
-                + self.mic_count * self.mic_consumption
-                + self.cam_count * self.cam_consumption
+                self.light_blackboard_count * self.light_blackboard_power
+                + self.light_stairs_count * self.light_stairs_power
+                + self.beamer_count * self.beamer_power
+                + self.amplifier_count * self.amplifier_power
+                + self.mic_count * self.mic_power
+                + self.cam_count * self.cam_power
                 + self.other
             ) * time
         else:
             self.base_consumption = (
                 (
-                    self.light_blackboard_count * self.light_blackboard_consumption
-                    + self.light_stairs_count * self.light_stairs_consumption
-                    + self.amplifier_count * self.amplifier_consumption
-                    + self.mic_count * self.mic_consumption
+                    self.light_blackboard_count * self.light_blackboard_power
+                    + self.light_stairs_count * self.light_stairs_power
+                    + self.amplifier_count * self.amplifier_power
+                    + self.mic_count * self.mic_power
                     + self.other
                 )
                 * time
@@ -325,14 +326,26 @@ class Transportation(models.Model):
             returns consumption in kWh
         """
 
-        if transport_consumption:
-            self.base_consumption = transport_consumption * transport_dist * time
-        elif transport_co_emission:
+        if self.transport_consumption is not None:
             self.base_consumption = (
-                transport_co_emission * transport_conv_fact * transport_dist * time
+                self.transport_consumption * self.transport_dist * time
+            )
+        elif self.transport_co_emission is not None:
+            self.base_consumption = (
+                self.transport_co_emission
+                * self.transport_conv_fact
+                * self.transport_dist
+                * time
             )
         else:
-            raise AttributeError("Neither CO_2 nor consumption available")
+            raise AttributeError(
+                "Neither CO_2 nor consumption available",
+                self.transport_name,
+                self.transport_consumption,
+                self.transport_co_emission,
+            )
+
+        return self.base_consumption
 
     university = models.ForeignKey(
         University, on_delete=models.CASCADE, blank=True, null=True
@@ -340,16 +353,21 @@ class Transportation(models.Model):
 
     transport_name = models.CharField("Name of means of transportation", max_length=200)
 
-    transport_co_emission = models.FloatField("CO_2 Emission (kg/km)", blank=True)
+    transport_co_emission = models.FloatField(
+        "CO_2 Emission (kg/km)", blank=True, null=True
+    )
     transport_conv_fact = models.FloatField(
-        "Conversion factor from CO_2 emitted to energy consumed (kWh/kg)", blank=True
+        "Conversion factor from CO_2 emitted to energy consumed (kWh/kg)",
+        blank=True,
+        null=True,
     )
     transport_dist = models.FloatField(
         "Conversion factor from minutes travelled to kilometers traveled (km/min)",
         blank=True,
+        null=True,
     )
     transport_consumption = models.FloatField(
-        "Energy consumption per distance (kWh/km)", blank=True
+        "Energy consumption per distance (kWh/km)", blank=True, null=True
     )
 
 
@@ -372,18 +390,22 @@ class Faculty(models.Model):
         device_list = ElectronicDevice.objects.order_by("device_name")
         index_dict = {}
         for i, m in enumerate(device_list):
-            index_dict[m] = i
+            index_dict[m.device_name] = i
         dev_stat = []
         if online:
-            if elec_dev_type_file_online is not None:
-                dev_str = np.genfromtxt(elec_dev_type_file_online, dtype=str)
+            if self.elec_dev_type_file_online is not None:
+                dev_str = np.genfromtxt(
+                    self.elec_dev_type_file_online, dtype=str, delimiter=","
+                )
             else:
-                dev_str = [elec_dev_type_online.device_name]
+                dev_str = [self.elec_dev_type_online]
         else:
-            if elec_dev_type_file_offline is not None:
-                dev_str = np.genfromtxt(elec_dev_type_file_offline, dtype=str)
+            if self.elec_dev_type_file_offline is not None:
+                dev_str = np.genfromtxt(
+                    self.elec_dev_type_file_offline, dtype=str, delimiter=","
+                )
             else:
-                dev_str = [elec_dev_type_offline.device_name]
+                dev_str = [self.elec_dev_type_offline]
 
         for e in dev_str:
             try:
@@ -403,10 +425,10 @@ class Faculty(models.Model):
             Lectures per day
         """
 
-        if lecture_freq_file is not None:
-            lec_pd = np.median(np.genfromtxt(lecture_freq_file))
+        if self.lecture_freq_file is not None:
+            lec_pd = np.median(np.genfromtxt(self.lecture_freq_file))
         else:
-            lec_pd = lecture_frequency
+            lec_pd = self.lecture_frequency
 
         return lec_pd
 
@@ -423,40 +445,48 @@ class Faculty(models.Model):
         "Number of lectures attended on daily average - statistic file",
         upload_to="data",
         blank=True,
+        null=True,
     )
 
     #    online_lec_freq = models.FloatField("Hours per day of watching online lectures")
-    #    online_lec_file = models.FileField(upload_to="data", blank=True)
+    #    online_lec_file = models.FileField(upload_to="data", blank=True, null=True)
 
     #    live_lec = models.FloatField(
     #        "Percentage of online lectured watched live per faculty"
     #    )
-    #    live_lec_file = models.FileField(upload_to="data", blank=True)
+    #    live_lec_file = models.FileField(upload_to="data", blank=True, null=True)
 
     elec_dev_use = models.FloatField("Use of electronic devices (%)")
     elec_dev_use_file = models.FileField(
-        "Use of electronic devices - statistic file", upload_to="data", blank=True
+        "Use of electronic devices - statistic file",
+        upload_to="data",
+        blank=True,
+        null=True,
     )
 
     #    elec_dev_freq = models.FloatField(
     #        "Frequency of use of electronic devices (h/day)"
     #    )
-    #    elec_dev_freq_file = models.FileField(upload_to="data", blank=True)
+    #    elec_dev_freq_file = models.FileField(upload_to="data", blank=True, null=True)
 
-    elec_dev_type_online = models.ForeignKey(
-        ElectronicDevice, on_delete=models.CASCADE, blank=True, null=True
+    elec_dev_type_online = models.CharField(
+        "Most used electronic device (online)",
+        max_length=200,
     )
     elec_dev_type_file_online = models.FileField(
         "Electronic device types (online lectures) - statistic file",
         upload_to="data",
         blank=True,
+        null=True,
     )
 
-    elec_dev_type_offline = models.ForeignKey(
-        ElectronicDevice, on_delete=models.CASCADE, blank=True, null=True
+    elec_dev_type_offline = models.CharField(
+        "Most used electronic device (offline)",
+        max_length=200,
     )
-    elec_dev_type_file_online = models.FileField(
+    elec_dev_type_file_offline = models.FileField(
         "Electronic device types (offline lectures) - statistic file",
         upload_to="data",
         blank=True,
+        null=True,
     )

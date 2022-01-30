@@ -192,7 +192,7 @@ class Lecture:
             p0 = np.random.randn(nwalkers, ndim)
 
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob)
-            sampler.run_mcmc(p0, 1000)
+            sampler.run_mcmc(p0, 1000, progress=True)
             samples = np.rint(sampler.get_chain(flat=True)[:, 0]) % len(d_cons)
             for i in range(device_random_length):
                 random_samples = np.random.choice(
@@ -221,15 +221,13 @@ class Lecture:
         if sampling == "simple":
             for i in range(transport_random_length):
                 rnd_cons = 0
-                choices, duration, freq = kernel.resample(self.num_stud)
-                choices = np.rint(choices) % len(t_cons)
+                choices, duration = kernel.resample(self.num_stud)
+                choices = np.rint(choices) % len(transport_list)
                 for j, choice in enumerate(choices):
                     rnd_cons += (
-                        transport_list[int(choice)].get_consumption(
-                            duration[int(choice)]
-                        )
+                        transport_list[int(choice)].get_consumption(duration[j])
                         * 2
-                        / lpd
+                        / lec_pd
                     )
                 cons.append(rnd_cons)
         elif sampling == "mcmc":
@@ -239,7 +237,7 @@ class Lecture:
             def log_prob(x):
                 return kernel.logpdf(x)
 
-            ndim, nwalkers = 4, self.num_stud
+            ndim, nwalkers = 2, self.num_stud
             p0 = np.random.randn(nwalkers, ndim)
 
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob)
@@ -250,15 +248,13 @@ class Lecture:
                     np.arange(len(samples[:, 0])), self.num_stud
                 )
                 choices, duration = samples[random_samples].T
-                choices = np.rint(choices) % len(t_cons)
+                choices = np.rint(choices) % len(transport_list)
                 rnd_cons = 0
                 for j, choice in enumerate(choices):
                     rnd_cons += (
-                        transport_list[int(choice)].get_consumption(
-                            duration[int(choice)]
-                        )
+                        transport_list[int(choice)].get_consumption(duration[j])
                         * 2
-                        / lpd
+                        / lec_pd
                     )
                 cons.append(rnd_cons)
 
@@ -373,8 +369,8 @@ class Lecture:
                         device_random_length=device_random_length,
                     )
                 elif self.faculty is not None:
-                    if self.faculty.elec_dev_type_file is not None:
-                        dev_stat = self.faculty.get_device_type_statistics()
+                    if self.faculty.elec_dev_type_file_online is not None:
+                        dev_stat = self.faculty.get_device_type_statistics(online=True)
                         c, s = self.get_random_device_consumption(
                             time,
                             device_list,
@@ -383,7 +379,7 @@ class Lecture:
                             device_random_length=device_random_length,
                         )
                     else:
-                        dev = self.faculty.elec_dev_type
+                        dev = self.faculty.elec_dev_type_online
                         c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
@@ -400,8 +396,6 @@ class Lecture:
                 beamer = True
             else:
                 beamer = False
-
-            time = self.faculty.lec_length
 
             consumption = self.hall.get_consumption(time, beamer=beamer)
             stat_uncertainty = 0
@@ -427,7 +421,7 @@ class Lecture:
 
             # Electronic devices
             num_stud_bak = self.num_stud
-            self.num_stud = int(np.rint(num_stud_bak * self.faculty.dev_usage))
+            self.num_stud = int(np.rint(num_stud_bak * self.faculty.elec_dev_use))
             if self.device is None:
                 # Get randomised devices
                 device_list = ElectronicDevice.objects.order_by("device_name")
@@ -441,8 +435,8 @@ class Lecture:
                         device_random_length=device_random_length,
                     )
                 elif self.faculty is not None:
-                    if self.faculty.elec_dev_type_file is not None:
-                        dev_stat = self.faculty.get_device_type_statistics()
+                    if self.faculty.elec_dev_type_file_offline is not None:
+                        dev_stat = self.faculty.get_device_type_statistics(online=False)
                         c, s = self.get_random_device_consumption(
                             time,
                             device_list,
@@ -451,7 +445,7 @@ class Lecture:
                             device_random_length=device_random_length,
                         )
                     else:
-                        dev = self.faculty.elec_dev_type
+                        dev = self.faculty.elec_dev_type_offline
                         c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
