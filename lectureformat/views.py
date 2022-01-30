@@ -20,6 +20,9 @@ from .models import *
 def home(request):
     return render(request, "home.html")
 
+def privacy(request):
+    return render(request, "privacy.html")    
+
 
 def calculator_home(request):
     university_list = University.objects.order_by("university_name")
