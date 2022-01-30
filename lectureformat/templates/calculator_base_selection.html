@@ -9,6 +9,7 @@
     {% csrf_token %}
 
     Enter number of students attending lecture: <input type="text" name="num_stud"><br><br>
+	Lecture duration (minutes): <input type="text" name="time"><br><br>
     {% if faculty_list %}
         <label for="facultys">Choose a faculty:</label>
         <select id="facultys" name="facultys">

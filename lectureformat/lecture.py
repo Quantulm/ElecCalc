@@ -145,14 +145,16 @@ class Lecture:
         data = imgdata.getvalue()
         return data
 
-    def get_random_living_consumption(self, living_list, living_random_length=100):
+    def get_random_living_consumption(
+        self, time, living_list, living_random_length=100
+    ):
         """
         Gets a randomised value for the consumption of the living arrangements
         """
         cons = []
         l_cons = []
         for l in living_list:
-            l_cons.append(l.get_consumption())
+            l_cons.append(l.get_consumption(time))
         indices = np.arange(len(l_cons))
         for i in range(living_random_length):
             rnd_cons = 0
@@ -164,13 +166,13 @@ class Lecture:
         return np.median(cons), np.std(cons)
 
     def get_random_device_consumption(
-        self, device_list, dev_stat, sampling="simple", device_random_length=100
+        self, time, device_list, dev_stat, sampling="simple", device_random_length=100
     ):
         cons = []
         d_cons = []
         for d in device_list:
-            d_cons.append(d.get_consumption())
-        # TODO get proper kernel
+            d_cons.append(d.get_consumption(time))
+
         kernel = stats.gaussian_kde(dev_stat)
         if sampling == "simple":
             for i in range(device_random_length):
@@ -208,34 +210,26 @@ class Lecture:
         transport_list,
         mot,
         t_dur,
-        t_freq,
-        lec_pw,
+        lec_pd,
         sampling="simple",
         transport_random_length=100,
     ):
         cons = []
-        t_cons = []
-        t_conv = []
-        for t in transport_list:
-            t_cons.append(t.get_consumption())
-            t_conv.append(t.transport_dist)
-        # TODO get proper kernel
 
-        kernel = stats.gaussian_kde(np.vstack([mot, t_dur, t_freq, lec_pw]))
+        kernel = stats.gaussian_kde(np.vstack([mot, t_dur]))
 
         if sampling == "simple":
             for i in range(transport_random_length):
                 rnd_cons = 0
-                choices, duration, freq, lpw = kernel.resample(self.num_stud)
+                choices, duration, freq = kernel.resample(self.num_stud)
                 choices = np.rint(choices) % len(t_cons)
                 for j, choice in enumerate(choices):
                     rnd_cons += (
-                        t_cons[int(choice)]
-                        * t_conv[int(choice)]
-                        * duration[j]
-                        * freq[j]
+                        transport_list[int(choice)].get_consumption(
+                            duration[int(choice)]
+                        )
                         * 2
-                        / lpw[j]
+                        / lpd
                     )
                 cons.append(rnd_cons)
         elif sampling == "mcmc":
@@ -255,17 +249,16 @@ class Lecture:
                 random_samples = np.random.choice(
                     np.arange(len(samples[:, 0])), self.num_stud
                 )
-                choices, duration, freq, lpw = samples[random_samples].T
+                choices, duration = samples[random_samples].T
                 choices = np.rint(choices) % len(t_cons)
                 rnd_cons = 0
                 for j, choice in enumerate(choices):
                     rnd_cons += (
-                        t_cons[int(choice)]
-                        * t_conv[int(choice)]
-                        * duration[j]
-                        * freq[j]
+                        transport_list[int(choice)].get_consumption(
+                            duration[int(choice)]
+                        )
                         * 2
-                        / lpw[j]
+                        / lpd
                     )
                 cons.append(rnd_cons)
 
@@ -273,6 +266,7 @@ class Lecture:
 
     def get_consumption(
         self,
+        time,
         mode,
         sampling="simple",
         living_random_length=100,
@@ -285,6 +279,8 @@ class Lecture:
 
         Parameters
         ----------
+        time : float
+            Duration of the lecture (min)
         mode : str
             Determines mode of lecture. Recognised modes:
             offline, online-streaming, online-vod,
@@ -339,14 +335,12 @@ class Lecture:
                 if self.streaming is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("Streaming service not set")
-                # TODO Implemet correct function call
-                consumption = self.streaming.get_consumption()
+                consumption = self.streaming.get_consumption(time)
             elif mode == "online-vod":
                 if self.vod is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("VoD service not set")
-                # TODO Implemet correct function call
-                consumption = self.vod.get_consumption()
+                consumption = self.vod.get_consumption(time)
             stat_uncertainty = 0
 
             # Living situation
@@ -355,15 +349,15 @@ class Lecture:
                 living_list = LivingSituation.objects.order_by("living_name")
                 if "random_living" in self.options:
                     c, s = self.get_random_living_consumption(
-                        living_list, living_random_length=living_random_length
+                        time, living_list, living_random_length=living_random_length
                     )
                     consumption += c
                     stat_uncertainty += s ** 2
                 else:
                     for l in living_list:
-                        l.get_consumption() * self.num_stud / len(living_list)
+                        l.get_consumption(time) * self.num_stud / len(living_list)
             else:
-                consumption += self.living.get_consumption() * self.num_stud
+                consumption += self.living.get_consumption(time) * self.num_stud
 
             # Electronic devices
             if self.device is None:
@@ -372,6 +366,7 @@ class Lecture:
                 if "random_device" in self.options:
                     dev_stat = np.arange(len(device_list))
                     c, s = self.get_random_device_consumption(
+                        time,
                         device_list,
                         dev_stat,
                         sampling=sampling,
@@ -381,6 +376,7 @@ class Lecture:
                     if self.faculty.elec_dev_type_file is not None:
                         dev_stat = self.faculty.get_device_type_statistics()
                         c, s = self.get_random_device_consumption(
+                            time,
                             device_list,
                             dev_stat,
                             sampling=sampling,
@@ -388,13 +384,13 @@ class Lecture:
                         )
                     else:
                         dev = self.faculty.elec_dev_type
-                        c = dev.get_consumption() * self.num_stud
+                        c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
                 consumption += c
                 stat_uncertainty += s ** 2
             else:
-                consumption += self.device.get_consumption() * self.num_stud
+                consumption += self.device.get_consumption(time) * self.num_stud
 
             return consumption, np.sqrt(stat_uncertainty)
 
@@ -415,14 +411,13 @@ class Lecture:
                 university=self.university
             ).order_by("transport_name")
 
-            mot, t_dur, t_freq = self.university.get_transport_statistics()
-            lec_pw = self.faculty.get_lecture_statistics()
+            mot, t_dur = self.university.get_transport_statistics()
+            lec_pd = self.faculty.get_lecture_statistics()
             c, s = self.get_random_transportation_consumption(
                 transport_list,
                 mot,
                 t_dur,
-                t_freq,
-                lec_pw=lec_pw,
+                lec_pd=lec_pd,
                 sampling=sampling,
                 transport_random_length=transport_random_length,
             )
@@ -439,6 +434,7 @@ class Lecture:
                 if "random_device" in self.options:
                     dev_stat = np.arange(len(device_list))
                     c, s = self.get_random_device_consumption(
+                        time,
                         device_list,
                         dev_stat,
                         sampling=sampling,
@@ -448,6 +444,7 @@ class Lecture:
                     if self.faculty.elec_dev_type_file is not None:
                         dev_stat = self.faculty.get_device_type_statistics()
                         c, s = self.get_random_device_consumption(
+                            time,
                             device_list,
                             dev_stat,
                             sampling=sampling,
@@ -455,13 +452,13 @@ class Lecture:
                         )
                     else:
                         dev = self.faculty.elec_dev_type
-                        c = dev.get_consumption() * self.num_stud
+                        c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
                 consumption += c
                 stat_uncertainty += s ** 2
             else:
-                consumption += self.device.get_consumption() * self.num_stud
+                consumption += self.device.get_consumption(time) * self.num_stud
 
             self.num_stud = num_stud_bak
 
@@ -489,6 +486,7 @@ class Lecture:
                 if p == 0:
                     self.num_stud = num_stud_bak
                     c, s = self.get_consumption(
+                        time,
                         "offline",
                         sampling=sampling,
                         living_random_length=living_random_length,
@@ -501,6 +499,7 @@ class Lecture:
                 elif p == num_stud_bak:
                     self.num_stud = p
                     c, s = self.get_consumption(
+                        time,
                         aux_mode,
                         sampling=sampling,
                         living_random_length=living_random_length,
@@ -514,6 +513,7 @@ class Lecture:
                     # Onsite contribution
                     self.num_stud = num_stud_bak - p
                     c_offline, s_offline = self.get_consumption(
+                        time,
                         "offline",
                         sampling=sampling,
                         living_random_length=living_random_length,
@@ -525,6 +525,7 @@ class Lecture:
                     # Online Contribution
                     self.num_stud = p
                     c_online, s_online = self.get_consumption(
+                        time,
                         aux_mode,
                         sampling=sampling,
                         living_random_length=living_random_length,
@@ -552,7 +553,6 @@ class Lecture:
             cons_std = func_std(x)
 
             min_ind = np.where(cons == min(cons))
-            frac = grid[min_ind] / self.num_stud
             min_cons = cons[min_ind]
             min_std = cons_std[min_ind]
 

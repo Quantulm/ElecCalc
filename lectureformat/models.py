@@ -8,6 +8,7 @@ fs = FileSystemStorage(location="data")
 
 # Create your models here.
 
+
 class University(models.Model):
     def __str__(self):
         return self.university_name
@@ -21,26 +22,30 @@ class University(models.Model):
         if transport_dur_file is not None:
             t_dur = np.genfromtxt(transport_dur_file)
         else:
-            t_dur = np.random.normal(loc=transport_duration, scale=0.1*transport_duration, size=100)
+            t_dur = np.random.normal(
+                loc=transport_duration, scale=0.1 * transport_duration, size=100
+            )
 
         if transport_freq_file is not None:
             t_freq = np.genfromtxt(transport_freq_file)
         else:
-            t_freq = np.random.normal(loc=transport_frequency, scale=0.1*transport_frequency, size=100)
+            t_freq = np.random.normal(
+                loc=transport_frequency, scale=0.1 * transport_frequency, size=100
+            )
 
         # Get list with available MoT for conversion from string to index
-        transport_list = Transportation.objects.filter(
-                university=self
-        ).order_by("transport_name")
+        transport_list = Transportation.objects.filter(university=self).order_by(
+            "transport_name"
+        )
         index_dict = {}
         for i, m in enumerate(transport_list):
-            index_dict{m} = i
+            index_dict[m] = i
         mot = []
         if transport_name_file is not None:
             mot_str = np.genfromtxt(transport_name_file, dtype=str)
         else:
             mot_str = [transport_name.transport_name]
-        
+
         for e in mot_str:
             try:
                 mot.append(index_dict[e])
@@ -52,13 +57,20 @@ class University(models.Model):
     university_name = models.CharField("Name of the University/Campus", max_length=200)
 
     transport_duration = models.FloatField("Time spent to or from university (min)")
-    transport_dur_file = models.FileField("Time spent to or from university - statistic file", upload_to="data", blank=True)
+    transport_dur_file = models.FileField(
+        "Time spent to or from university - statistic file",
+        upload_to="data",
+        blank=True,
+    )
 
     transport_frequency = models.FloatField("Transport frequency (days/week)")
-    transport_freq_file = models.FileField("Transport frequency - statistic file", upload_to="data", blank=True)
+    transport_freq_file = models.FileField(
+        "Transport frequency - statistic file", upload_to="data", blank=True
+    )
 
     transport_name = models.ForeignKey(
-        Transportation, on_delete=models.CASCADE,
+        Transportation,
+        on_delete=models.CASCADE,
     )
     transport_name_file = models.FileField(
         "Means of transportation - statistic file", upload_to="data", blank=True
@@ -84,7 +96,7 @@ class LectureHall(models.Model):
         consumption : float
             returns consumption in kWh
         """
-    
+
         if beamer:
             self.base_consumption = (
                 self.light_blackboard_count * self.light_blackboard_consumption
@@ -97,13 +109,17 @@ class LectureHall(models.Model):
             ) * time
         else:
             self.base_consumption = (
-                self.light_blackboard_count * self.light_blackboard_consumption
-                + self.light_stairs_count * self.light_stairs_consumption
-                + self.amplifier_count * self.amplifier_consumption
-                + self.mic_count * self.mic_consumption
-                + self.other
-            ) * time / 60 # Conversion from min to h
-        return self.base_consumption / 1000 # Conversion from Wh to kWh
+                (
+                    self.light_blackboard_count * self.light_blackboard_consumption
+                    + self.light_stairs_count * self.light_stairs_consumption
+                    + self.amplifier_count * self.amplifier_consumption
+                    + self.mic_count * self.mic_consumption
+                    + self.other
+                )
+                * time
+                / 60
+            )  # Conversion from min to h
+        return self.base_consumption / 1000  # Conversion from Wh to kWh
 
     university = models.ForeignKey(
         University, on_delete=models.CASCADE, blank=True, null=True
@@ -150,7 +166,7 @@ class StreamingService(models.Model):
         return self.streaming_name
 
     def get_consumption(self, time):
-         """
+        """
         Calculates basic consumption
 
         Parameters
@@ -161,15 +177,19 @@ class StreamingService(models.Model):
         Return :
         consumption : float
             returns consumption in kWh
-        """               
+        """
         self.base_consumption = (
-            self.streaming_access_power
-            +self.streaming_router_power
-            +self.streaming_core_pergb * self.streaming_core_data * 1000
-            # Conversion from kW to W
-        ) * time / 60 # Conversion from min to h
+            (
+                self.streaming_access_power
+                + self.streaming_router_power
+                + self.streaming_core_pergb * self.streaming_core_data * 1000
+                # Conversion from kW to W
+            )
+            * time
+            / 60
+        )  # Conversion from min to h
 
-        return self.base_consumption / 1000 # Conversion from Wh to kWh
+        return self.base_consumption / 1000  # Conversion from Wh to kWh
 
     streaming_name = models.CharField("Name of the streaming service", max_length=200)
     streaming_access_power = models.FloatField("Access - Power (W)")
@@ -198,16 +218,20 @@ class VideoOnDemandService(models.Model):
         Return :
         consumption : float
             returns consumption in kWh
-        """  
+        """
         self.base_consumption = (
-            self.vod_access_power
-            + self.vod_router_power
-            + self.vod_core_data * self.vod_core_pergb * 1000
-            # Conversion from kW to W
-            + self.vod_data_center_data * self.vod_data_center_power * time / 60
-            # Conversion from W/h to W
-        ) * time / 60 # Conversion from min to h
-        return self.base_consumption / 1000 # Conversion from Wh to kWh
+            (
+                self.vod_access_power
+                + self.vod_router_power
+                + self.vod_core_data * self.vod_core_pergb * 1000
+                # Conversion from kW to W
+                + self.vod_data_center_data * self.vod_data_center_power * time / 60
+                # Conversion from W/h to W
+            )
+            * time
+            / 60
+        )  # Conversion from min to h
+        return self.base_consumption / 1000  # Conversion from Wh to kWh
 
     vod_name = models.CharField("Name of the VoD service", max_length=200)
     vod_access_power = models.FloatField("Access - Power (W)")
@@ -242,11 +266,14 @@ class LivingSituation(models.Model):
             returns consumption in kWh
         """
         self.base_consumption = (
-            self.living_num_lights * self.living_power * time / 60
+            self.living_num_lights
+            * self.living_power
+            * time
+            / 60
             # Conversion from min to h
         )
 
-        return self.base_consumption / 1000 # Conversion from Wh to kWh
+        return self.base_consumption / 1000  # Conversion from Wh to kWh
 
     living_name = models.CharField("Name of the living situation", max_length=200)
     living_num_lights = models.PositiveIntegerField(
@@ -272,12 +299,9 @@ class ElectronicDevice(models.Model):
         consumption : float
             returns consumption in kWh
         """
-        self.base_consumption = (
-            self.device_power * time / 60
-        )
-        
-        return self.base_consumption
+        self.base_consumption = self.device_power * time / 60
 
+        return self.base_consumption
 
     device_name = models.CharField("Name of the electronic device", max_length=200)
     device_power = models.FloatField("Power of the device (W)")
@@ -302,17 +326,13 @@ class Transportation(models.Model):
         """
 
         if transport_consumption:
-            self.base_consumption = (
-                transport_consumption * transport_dist * time
-            )
+            self.base_consumption = transport_consumption * transport_dist * time
         elif transport_co_emission:
             self.base_consumption = (
                 transport_co_emission * transport_conv_fact * transport_dist * time
             )
         else:
             raise AttributeError("Neither CO_2 nor consumption available")
-        
-
 
     university = models.ForeignKey(
         University, on_delete=models.CASCADE, blank=True, null=True
@@ -320,14 +340,13 @@ class Transportation(models.Model):
 
     transport_name = models.CharField("Name of means of transportation", max_length=200)
 
-    transport_co_emission = models.FloatField(
-        "CO_2 Emission (kg/km)", blank=True
-    )
+    transport_co_emission = models.FloatField("CO_2 Emission (kg/km)", blank=True)
     transport_conv_fact = models.FloatField(
         "Conversion factor from CO_2 emitted to energy consumed (kWh/kg)", blank=True
     )
     transport_dist = models.FloatField(
-        "Conversion factor from minutes travelled to kilometers traveled (km/min)", blank=True
+        "Conversion factor from minutes travelled to kilometers traveled (km/min)",
+        blank=True,
     )
     transport_consumption = models.FloatField(
         "Energy consumption per distance (kWh/km)", blank=True
@@ -353,7 +372,7 @@ class Faculty(models.Model):
         device_list = ElectronicDevice.objects.order_by("device_name")
         index_dict = {}
         for i, m in enumerate(device_list):
-            index_dict{m} = i
+            index_dict[m] = i
         dev_stat = []
         if online:
             if elec_dev_type_file_online is not None:
@@ -365,14 +384,14 @@ class Faculty(models.Model):
                 dev_str = np.genfromtxt(elec_dev_type_file_offline, dtype=str)
             else:
                 dev_str = [elec_dev_type_offline.device_name]
-        
+
         for e in dev_str:
             try:
                 dev_stat.append(index_dict[e])
             except KeyError:
                 continue
 
-        return np.array(dev_stat) 
+        return np.array(dev_stat)
 
     def get_lecture_statistics(self):
         """
@@ -403,28 +422,26 @@ class Faculty(models.Model):
     lecture_freq_file = models.FileField(
         "Number of lectures attended on daily average - statistic file",
         upload_to="data",
-        blank=True
+        blank=True,
     )
 
-#    online_lec_freq = models.FloatField("Hours per day of watching online lectures")
-#    online_lec_file = models.FileField(upload_to="data", blank=True)
+    #    online_lec_freq = models.FloatField("Hours per day of watching online lectures")
+    #    online_lec_file = models.FileField(upload_to="data", blank=True)
 
-#    live_lec = models.FloatField(
-#        "Percentage of online lectured watched live per faculty"
-#    )
-#    live_lec_file = models.FileField(upload_to="data", blank=True)
+    #    live_lec = models.FloatField(
+    #        "Percentage of online lectured watched live per faculty"
+    #    )
+    #    live_lec_file = models.FileField(upload_to="data", blank=True)
 
     elec_dev_use = models.FloatField("Use of electronic devices (%)")
     elec_dev_use_file = models.FileField(
-        "Use of electronic devices - statistic file",
-        upload_to="data",
-        blank=True
+        "Use of electronic devices - statistic file", upload_to="data", blank=True
     )
 
-#    elec_dev_freq = models.FloatField(
-#        "Frequency of use of electronic devices (h/day)"
-#    )
-#    elec_dev_freq_file = models.FileField(upload_to="data", blank=True)
+    #    elec_dev_freq = models.FloatField(
+    #        "Frequency of use of electronic devices (h/day)"
+    #    )
+    #    elec_dev_freq_file = models.FileField(upload_to="data", blank=True)
 
     elec_dev_type_online = models.ForeignKey(
         ElectronicDevice, on_delete=models.CASCADE, blank=True, null=True
@@ -432,7 +449,7 @@ class Faculty(models.Model):
     elec_dev_type_file_online = models.FileField(
         "Electronic device types (online lectures) - statistic file",
         upload_to="data",
-        blank=True
+        blank=True,
     )
 
     elec_dev_type_offline = models.ForeignKey(
@@ -441,5 +458,5 @@ class Faculty(models.Model):
     elec_dev_type_file_online = models.FileField(
         "Electronic device types (offline lectures) - statistic file",
         upload_to="data",
-        blank=True
+        blank=True,
     )

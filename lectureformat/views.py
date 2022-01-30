@@ -61,6 +61,7 @@ def calculator_base_selection(request):
 def calculator_option_selection(request):
     # Get and save answers
     request.session["num"] = request.POST["num_stud"]
+    request.session["time"] = request.POST["time"]
     try:
         faculty = get_object_or_404(Faculty, pk=request.POST["facultys"])
         request.session["faculty"] = faculty.id
@@ -98,6 +99,7 @@ def calculator_option_selection(request):
             pk=request.session.get("university")
         ).university_name,
         "num": request.session.get("num"),
+        "time": request.session.get("time"),
         "faculty": faculty_name,
         "lecture_hall": lecture_hall_name,
         "streaming": streaming_name,
@@ -122,6 +124,7 @@ def calculator_result_selection(request):
         ).university_name,
         "faculty": Faculty.objects.get(pk=request.session.get("faculty")).faculty_name,
         "num": request.session.get("num"),
+        "time": request.session.get("time"),
     }
     if request.session.get("lecture_hall") is not None:
         context["lecture_hall"] = LectureHall.objects.get(
@@ -177,12 +180,14 @@ def calculator_result(request):
     university = University.objects.get(pk=request.session.get("university"))
     faculty = Faculty.objects.get(pk=request.session.get("faculty"))
     num_stud = request.session.get("num")
+    time = request.session.get("time")
     sampling = request.session.get("sampling")
 
     context = {
         "university": university.university_name,
         "faculty": faculty.faculty_name,
         "num": num_stud,
+        "time": time,
         "sampling": sampling,
         "mode": mode,
     }
@@ -225,7 +230,9 @@ def calculator_result(request):
         options=opts,
     )
 
-    consumption, stat_uncertainty = lecture.get_consumption(mode, sampling.lower())
+    consumption, stat_uncertainty = lecture.get_consumption(
+        float(time), mode, sampling.lower()
+    )
 
     context["consumption"] = "{:.2f} +/- {:.2f} kWh".format(
         consumption, stat_uncertainty
@@ -233,51 +240,3 @@ def calculator_result(request):
     if lecture.figure is not None:
         context["figure"] = lecture.figure
     return render(request, "calculator_result.html", context)
-
-
-# def lectureformat(request):
-#    num = request.POST["num_stud"]
-#    lec_type = request.POST["lec_type"]
-#    season = request.POST["season"]
-#    lecture_hall = get_object_or_404(LectureHall, pk=request.POST["lecture_halls"])
-#
-#    a = LectureHall.objects.all()
-#
-#    if num.isdigit() and lec_type.isdigit() and season.isdigit():
-#        if season != 0 or season != 1:
-#           # Default to winter if wrong season is specified
-#            season = 0
-#        num = int(num)
-#        lec_type = int(lec_type) / 100
-#        data, res = s.toycalc(num, lec_type, season)
-#        context = {}
-#        context["graph"] = data
-#        context["result"] = a[0].test()
-#        context["hall"] = lecture_hall
-#        return render(request, "result.html", context)
-#
-#    else:
-#        res = "Only digits are allowed"
-#        return render(request, "result.html", {"result": res})
-
-
-# def result(request):
-#    def return_graph():
-#
-#        x = np.arange(0, np.pi * 3, 0.1)
-#        y = np.sin(x)
-#
-#        fig = plt.figure()
-#        plt.plot(x, y)
-#
-#        imgdata = io.StringIO()
-#        fig.savefig(imgdata, format="svg")
-#        imgdata.seek(0)
-#
-#        data = imgdata.getvalue()
-#        return data
-#
-#    context = {"graph": []}
-#    context["graph"] = return_graph()
-#    context["result"] = str(5000)
-#    return render(request, "result.html", context)
