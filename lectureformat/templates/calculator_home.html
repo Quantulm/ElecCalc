@@ -1,8 +1,9 @@
 {% extends 'home.html' %}
 
 {% block content %}
-
-<h1>elecCalc - Lecturer mode</h1>
+<div class="col col2">
+    <h2>Column 2</h2>
+    <h1>elecCalc - Lecturer mode</h1>
 <p> Welcome to the calculator. This is the homepage. UNDER CONSTRUCTION </p>
 <form action="calculator_base_selection" method="POST">
     {% csrf_token %}
@@ -20,4 +21,6 @@
     {% endif %}
      <input type="submit" value="Next">
 </form>
+</div>
+
 {% endblock %}

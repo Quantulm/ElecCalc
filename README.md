@@ -15,7 +15,7 @@ Early prototype for TUMJA: Team Climates calculator project
     `conda activate eleccalc`
 6. Change into the main directory (should contain a manage.py file)
 7. Start the local server:  
-    `python managy.py runserver`
+    `python manage.py runserver`
 8. If everything worked, you should see an adress in your command line output (something like localhost:8000). Click on it or paste it into your browsers adress line
 9. Enjoy!
 
@@ -41,5 +41,5 @@ Early prototype for TUMJA: Team Climates calculator project
     2. If you encounter any further problems or just want to be on the safe side (if you're on a system with an Intel CPU), install:  
     `conda install -c intel mkl-service`
 6. Select the newly created environment as python interpreter in you IDE of choice
-7. Run `manage.py` (either via the Anaconda Powershell Prompt by executing `python managy.py runserver` (recommended), or through your IDE)
+7. Run `manage.py` (either via the Anaconda Powershell Prompt by executing `python manage.py runserver` (recommended), or through your IDE)
 8. Enjoy!
