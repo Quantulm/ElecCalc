@@ -8,13 +8,74 @@
     <title>Calculator</title>
 </head>
 <body>
-    {% block content %}
-    <p> Welcome to ElecCalc. This is an early prototpye of the project group ElecTum of the TUM: Junge Akademie.</p>
-    <p> Here you can find our <a href="https://www.ja.tum.de/climate/">Website</a> and learn more about our project.</p>
-    <p> Or try the calculator yourself.</p>
-    <p><a href="/calculator_home">ElecCalc</a></p>
-    <p> If you have any questions, don't hesitate to contact us at climate@ja.tum.de</p>
-	<p><font size="+2">Admin login: <a href="/admin">here</a></font></p>
-    {% endblock %}
+    <header>
+        <div class="logo">
+            <h1>ElecTUM</h1>
+            <button><a href="/admin">Login</a></button>
+        </div>       
+    </header>
+       
+       <main>
+           <div class="Container">
+          
+                <div id="menu" class="col col1">
+                    <a class="item" href="/">Home</a>
+                    <a class="item" href="#">About</a>
+                    <a class="item" href="calculator_home">ElecCalculor</a>
+                    <a class="item" href="privacy">Legal Notice</a>
+               </div>
+               {% block content %}
+            <div class="col col2">
+                <h2> Welcome to ElecCalc</h2>
+                <p>This is an early prototpye of the project group ElecTum of the TUM: Junge Akademie.</p>
+                <p> Here you can find our <a href="https://www.ja.tum.de/climate/" target="_blank">Website</a> and learn more about our project.</p>
+                <h2> Or try the calculator yourself by logging in.</h2>
+                <p> If you have any questions, don't hesitate to contact us at climate@ja.tum.de</p>
+            </div>
+            {% endblock %}
+            <div class="col col3">
+               
+              
+            </div>
+           </div>
+        </main>
+                      
+       
+     
+            <div class="wrapper">
+                <img src="#" alt="">
+                <div class="cookie-content">
+                  <p>This website uses cookies to ensure you get the best experience.</p>
+                  <div class="buttons">
+                    <button class="item">I understand</button>
+                    <a href="privacy" class="item">Learn more</a>
+                  </div>
+                </div>
+              </div>
+              <script>
+                const cookieBox = document.querySelector(".wrapper"),
+                acceptBtn = cookieBox.querySelector("button");
+                acceptBtn.onclick = ()=>{
+                  document.cookie = "Cookie; max-age="+60*60*24*30;
+                  if(document.cookie){
+                    cookieBox.classList.add("hide"); 
+                  }else{ 
+                    alert("Cookie can't be set! Please unblock this site from the cookie setting of your browser.");
+                  }
+                }
+                let checkCookie = document.cookie.indexOf("Cookie");
+                checkCookie != -1 ? cookieBox.classList.add("hide") : cookieBox.classList.remove("hide"); 
+              </script>
+
+   
+    <footer>
+        &copy; 2022 | ElecTUM
+    </footer>
 </body>
+
+
 </html>
+
+
+
+

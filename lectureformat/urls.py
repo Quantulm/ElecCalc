@@ -1,3 +1,4 @@
+from unicodedata import name
 from django.contrib import admin
 from django.urls import path, include
 from . import views
@@ -22,4 +23,5 @@ urlpatterns = [
         name="calculator_result_selection",
     ),
     path("calculator_result", views.calculator_result, name="calculator_result"),
+    path("privacy", views.privacy, name="privacy"),
 ]
