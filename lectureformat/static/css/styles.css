@@ -195,10 +195,6 @@ footer{
   clear:both;
 }
 /* -----------------------------------------Media */
-@media only screen and (max-width:768px){
-  
-  
-}
 @media only screen and (max-width:480px){
   .col{
      float: none;
