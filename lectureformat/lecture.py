@@ -452,7 +452,7 @@ class Lecture:
 
             # Electronic devices
             num_stud_bak = self.num_stud
-            self.num_stud = int(np.rint(num_stud_bak * self.faculty.elec_dev_use))
+            self.num_stud = int(np.rint(num_stud_bak * self.faculty.elec_dev_use / 100))
             if self.device is None:
                 # Get randomised devices
                 device_list = ElectronicDevice.objects.order_by("device_name")
