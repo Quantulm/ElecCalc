@@ -195,15 +195,6 @@ footer{
   clear:both;
 }
 /* -----------------------------------------Media */
-@media only screen and (max-width:768px){
-  
-  .col1, .col2{
-      width:50%;
-  }
-  .col3{
-      width:100%;
-  }
-}
 @media only screen and (max-width:480px){
   .col{
      float: none;
@@ -219,6 +210,12 @@ footer{
   .Container {
       max-width: 720px;
 }
+  .col1, .col2{
+    width:50%;
+  }
+  .col3{
+    width:100%;
+  }
   .ProjectWrapper {
       margin-top: -5rem;
 }
