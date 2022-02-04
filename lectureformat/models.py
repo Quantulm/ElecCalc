@@ -113,6 +113,7 @@ class LectureHall(models.Model):
                 (
                     self.light_blackboard_count * self.light_blackboard_power
                     + self.light_stairs_count * self.light_stairs_power
+                    + self.light_general_count * self.light_general_power
                     + self.amplifier_count * self.amplifier_power
                     + self.mic_count * self.mic_power
                     + self.other
@@ -145,6 +146,12 @@ class LectureHall(models.Model):
     )
     light_stairs_power = models.FloatField(
         "Light bulbs: Stairs - Power per light bulb (W)"
+    )
+    light_general_count = models.PositiveIntegerField(
+        "Light bulbs: General - Number of light bulbs"
+    )
+    light_general_power = models.FloatField(
+        "Light bulbs: General - Power per light bulb (W)"
     )
 
     beamer_count = models.PositiveIntegerField("Beamer - Number of beamers")
