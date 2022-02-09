@@ -103,7 +103,11 @@ class Lecture:
         return
 
     def get_hybrid_figure(self, grid, cons, cons_std, interp_grid):
-        fig = plt.figure()
+        if "notransport" in self.options:
+            notrans = 0
+            notrans_std = 0
+
+        fig = plt.figure(figsize=[7.5, 4.8])
         p = max(grid)
 
         def online(x):
@@ -142,11 +146,24 @@ class Lecture:
             c = func(grid)
             s = func_std(grid)
 
+            if "notransport" in self.options and key != "Transportation":
+                notrans += c
+                notrans_std += s**2
+
             plt.plot(grid, c, label=key)
             plt.fill_between(grid, c + s, c - s, alpha=0.3)
 
+        if "notransport" in self.options:
+            plt.plot(grid, notrans, linestyle="--", label="Without tranposrtation")
+            plt.fill_between(
+                grid,
+                notrans + np.sqrt(notrans_std),
+                notrans - np.sqrt(notrans_std),
+                alpha=0.3,
+            )
+
         # Put a legend to the right of the current axis
-        plt.gca().legend(loc="center left", bbox_to_anchor=(1, 0.5))
+        plt.gca().legend(loc="center left", bbox_to_anchor=(1.05, 0.3))
 
         if "logplot" in self.options:
             plt.ylabel("log(Consumption per lecture) (kWh)")
@@ -168,10 +185,26 @@ class Lecture:
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle="round", alpha=0.5)
 
-        textstr = (
-            "Optimal mode:\n- %d students online\n- %d students on-site\n- Total consumption: %.2f $\pm$ %.2f$\,$kWh"
-            % (grid[minind], max(grid) - grid[minind], min_cons, min_std)
-        )
+        if "notransport" in self.options:
+            min_ind_nt = np.where(notrans == min(notrans))
+            min_cons_nt = notrans[min_ind_nt]
+            min_std_nt = notrans[min_ind_nt]
+            textstr = "Optimal mode:\n- %d students online\n- %d students on-site\n- Total consumption: %.2f $\pm$ %.2f$\,$kWh\n\n" % (
+                grid[minind],
+                max(grid) - grid[minind],
+                min_cons,
+                min_std,
+            ) + "Without transportation:\n- %d students online\n %d students on-site\n- Consumption: %.2f $\pm$ %.2f$\,$kWh" % (
+                grid[min_ind_nt],
+                max(grid) - grid[min_ind_nt],
+                min_cons_nt,
+                min_std_nt,
+            )
+        else:
+            textstr = (
+                "Optimal mode:\n- %d students online\n- %d students on-site\n- Total consumption: %.2f $\pm$ %.2f$\,$kWh"
+                % (grid[minind], max(grid) - grid[minind], min_cons, min_std)
+            )
 
         # place a text box in upper left in axes coords
         txt = plt.gca().text(

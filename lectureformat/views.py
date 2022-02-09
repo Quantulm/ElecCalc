@@ -113,7 +113,14 @@ def calculator_option_selection(request):
     return HttpResponse(template.render(context, request))
 
 
-options = ["random_living", "random_devices", "beamer", "logplot", "option1"]
+options = [
+    "random_living",
+    "random_devices",
+    "beamer",
+    "logplot",
+    "notransport",
+    "option1",
+]
 
 
 def calculator_result_selection(request):
