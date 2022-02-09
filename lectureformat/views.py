@@ -20,8 +20,9 @@ from .models import *
 def home(request):
     return render(request, "home.html")
 
+
 def privacy(request):
-    return render(request, "privacy.html")    
+    return render(request, "privacy.html")
 
 
 def calculator_home(request):
@@ -112,7 +113,7 @@ def calculator_option_selection(request):
     return HttpResponse(template.render(context, request))
 
 
-options = ["random_living", "random_devices", "option1"]
+options = ["random_living", "random_devices", "beamer", "logplot", "option1"]
 
 
 def calculator_result_selection(request):

@@ -82,11 +82,27 @@ class Lecture:
                 warnings.warn("Unrecognized key '%s', ignoring..." % key)
 
         self.figure = None
+        self.contribs = {
+            "Streaming": [],
+            "VoD": [],
+            "Devices": [],
+            "Living": [],
+            "Lecture hall": [],
+            "Transportation": [],
+        }
+        self.contribs_std = {
+            "Streaming": [],
+            "VoD": [],
+            "Devices": [],
+            "Living": [],
+            "Lecture hall": [],
+            "Transportation": [],
+        }
         self.debug_figures = {}
 
         return
 
-    def get_hybrid_figure(self, grid, cons, cons_std):
+    def get_hybrid_figure(self, grid, cons, cons_std, interp_grid):
         fig = plt.figure()
         p = max(grid)
 
@@ -100,8 +116,43 @@ class Lecture:
         plt.fill_between(
             grid, cons + cons_std, cons - cons_std, alpha=0.3, label=r"1$\sigma$"
         )
-        plt.legend()
-        plt.ylabel("Consumption per lecture (kWh)")
+
+        # Add different contributions
+        for key in self.contribs.keys():
+            if len(self.contribs[key]) == 0:
+                continue
+
+            if key == "Devices":
+                # Devices get written twice, so they need to be summed again
+                contrib = [
+                    self.contribs[key][i] + self.contribs[key][i + 1]
+                    for i in range(int(len(self.contribs[key]) / 2))
+                ]
+                contrib_std = [
+                    self.contribs_std[key][i] + self.contribs_std[key][i + 1]
+                    for i in range(int(len(self.contribs_std[key]) / 2))
+                ]
+                func = interpolate.interp1d(interp_grid, np.array(contrib))
+                func_std = interpolate.interp1d(interp_grid, np.sqrt(contrib_std))
+            else:
+                func = interpolate.interp1d(interp_grid, np.array(self.contribs[key]))
+                func_std = interpolate.interp1d(
+                    interp_grid, np.sqrt(self.contribs_std[key])
+                )
+            c = func(grid)
+            s = func_std(grid)
+
+            plt.plot(grid, c, label=key)
+            plt.fill_between(grid, c + s, c - s, alpha=0.3)
+
+        # Put a legend to the right of the current axis
+        plt.gca().legend(loc="center left", bbox_to_anchor=(1, 0.5))
+
+        if "logplot" in self.options:
+            plt.ylabel("log(Consumption per lecture) (kWh)")
+            plt.yscale("log", nonpositive="clip")
+        else:
+            plt.ylabel("Consumption per lecture (kWh)")
         plt.xlabel("Number of students joining online")
         plt.grid()
 
@@ -356,12 +407,18 @@ class Lecture:
                 if self.streaming is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("Streaming service not set")
-                consumption = self.streaming.get_consumption(time) * self.num_stud
+                c = self.streaming.get_consumption(time) * self.num_stud
+                self.contribs["Streaming"].append(c)
+                self.contribs_std["Streaming"].append(0)
+                consumption = c
             elif mode == "online-vod":
                 if self.vod is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("VoD service not set")
-                consumption = self.vod.get_consumption(time) * self.num_stud
+                c = self.vod.get_consumption(time) * self.num_stud
+                self.contribs["VoD"].append(c)
+                self.contribs_std["VoD"].append(0)
+                consumption = c
             stat_uncertainty = 0
 
             # Living situation
@@ -372,13 +429,18 @@ class Lecture:
                     c, s = self.get_random_living_consumption(
                         time, living_list, living_random_length=living_random_length
                     )
-                    consumption += c
-                    stat_uncertainty += s**2
                 else:
+                    c = 0
+                    s = 0
                     for l in living_list:
-                        l.get_consumption(time) * self.num_stud / len(living_list)
+                        c += l.get_consumption(time) * self.num_stud / len(living_list)
             else:
-                consumption += self.living.get_consumption(time) * self.num_stud
+                c = self.living.get_consumption(time) * self.num_stud
+                s = 0
+            self.contribs["Living"].append(c)
+            self.contribs_std["Living"].append(s)
+            consumption += c
+            stat_uncertainty += s**2
 
             # Electronic devices
             if self.device is None:
@@ -408,14 +470,20 @@ class Lecture:
                         c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
-                consumption += c
-                stat_uncertainty += s**2
             else:
-                consumption += self.device.get_consumption(time) * self.num_stud
+                c = self.device.get_consumption(time) * self.num_stud
+                s = 0
+            self.contribs["Devices"].append(c)
+            self.contribs_std["Devices"].append(s)
+            consumption += c
+            stat_uncertainty += s**2
 
             return consumption, np.sqrt(stat_uncertainty)
 
         if mode == "offline":
+            consumption = 0
+            stat_uncertainty = 0
+
             # Lecture Hall
             if "beamer" in self.options:
                 beamer = True
@@ -427,8 +495,13 @@ class Lecture:
             else:
                 debug = False
 
-            consumption = self.hall.get_consumption(time, beamer=beamer)
-            stat_uncertainty = 0
+            c = self.hall.get_consumption(time, beamer=beamer)
+            s = 0
+            self.contribs["Lecture hall"].append(c)
+            self.contribs_std["Lecture hall"].append(s)
+
+            consumption += c
+            stat_uncertainty += s
 
             # Transportation
             transport_list = Transportation.objects.filter(
@@ -447,6 +520,8 @@ class Lecture:
                 debug=debug,
             )
 
+            self.contribs["Transportation"].append(c)
+            self.contribs_std["Transportation"].append(s)
             consumption += c
             stat_uncertainty += s**2
 
@@ -480,10 +555,13 @@ class Lecture:
                         c = dev.get_consumption(time) * self.num_stud
                 else:
                     raise AttributeError("Faculty must be selected")
-                consumption += c
-                stat_uncertainty += s**2
             else:
-                consumption += self.device.get_consumption(time) * self.num_stud
+                c = self.device.get_consumption(time) * self.num_stud
+                s = 0
+            self.contribs["Devices"].append(c)
+            self.contribs_std["Devices"].append(s)
+            consumption += c
+            stat_uncertainty += s**2
 
             self.num_stud = num_stud_bak
 
@@ -521,7 +599,19 @@ class Lecture:
                     )
                     cons.append(c)
                     cons_std.append(s)
+                    if mode == "hybrid-streaming":
+                        self.contribs["Streaming"].append(0.0)
+                        self.contribs_std["Streaming"].append(0.0)
+                    else:
+                        self.contribs["VoD"].append(0.0)
+                        self.contribs_std["VoD"].append(0.0)
+                    self.contribs["Devices"].append(0.0)
+                    self.contribs_std["Devices"].append(0.0)
+                    self.contribs["Living"].append(0.0)
+                    self.contribs_std["Living"].append(0.0)
                 elif p == num_stud_bak:
+                    self.contribs["Devices"].append(0.0)
+                    self.contribs_std["Devices"].append(0.0)
                     self.num_stud = p
                     c, s = self.get_consumption(
                         time,
@@ -534,6 +624,10 @@ class Lecture:
                     )
                     cons.append(c)
                     cons_std.append(s)
+                    self.contribs["Lecture hall"].append(0.0)
+                    self.contribs_std["Lecture hall"].append(0.0)
+                    self.contribs["Transportation"].append(0.0)
+                    self.contribs_std["Transportation"].append(0.0)
                 else:
                     # Onsite contribution
                     self.num_stud = num_stud_bak - p
@@ -581,6 +675,6 @@ class Lecture:
             min_cons = cons[min_ind]
             min_std = cons_std[min_ind]
 
-            self.figure = self.get_hybrid_figure(x, cons, cons_std)
+            self.figure = self.get_hybrid_figure(x, cons, cons_std, grid)
 
             return min_cons[0], min_std[0]
