@@ -100,14 +100,18 @@ class LectureHall(models.Model):
 
         if beamer:
             self.base_consumption = (
-                self.light_blackboard_count * self.light_blackboard_power
-                + self.light_stairs_count * self.light_stairs_power
-                + self.beamer_count * self.beamer_power
-                + self.amplifier_count * self.amplifier_power
-                + self.mic_count * self.mic_power
-                + self.cam_count * self.cam_power
-                + self.other
-            ) * time
+                (
+                    self.light_blackboard_count * self.light_blackboard_power
+                    + self.light_stairs_count * self.light_stairs_power
+                    + self.beamer_count * self.beamer_power
+                    + self.amplifier_count * self.amplifier_power
+                    + self.mic_count * self.mic_power
+                    + self.cam_count * self.cam_power
+                    + self.other
+                )
+                * time
+                / 60
+            )  # Conversion from min to h
         else:
             self.base_consumption = (
                 (
@@ -309,7 +313,7 @@ class ElectronicDevice(models.Model):
         """
         self.base_consumption = self.device_power * time / 60
 
-        return self.base_consumption
+        return self.base_consumption / 1000
 
     device_name = models.CharField("Name of the electronic device", max_length=200)
     device_power = models.FloatField("Power of the device (W)")
@@ -335,14 +339,16 @@ class Transportation(models.Model):
 
         if self.transport_consumption is not None:
             self.base_consumption = (
-                self.transport_consumption * self.transport_dist * time
+                self.transport_consumption
+                * self.transport_dist
+                * time  # This needs to be in min!
             )
         elif self.transport_co_emission is not None:
             self.base_consumption = (
                 self.transport_co_emission
                 * self.transport_conv_fact
                 * self.transport_dist
-                * time
+                * time  # This needs to be in min!
             )
         else:
             raise AttributeError(

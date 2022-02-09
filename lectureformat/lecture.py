@@ -356,12 +356,12 @@ class Lecture:
                 if self.streaming is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("Streaming service not set")
-                consumption = self.streaming.get_consumption(time)
+                consumption = self.streaming.get_consumption(time) * self.num_stud
             elif mode == "online-vod":
                 if self.vod is None:
                     # TODO Redirect to proper error page
                     raise AttributeError("VoD service not set")
-                consumption = self.vod.get_consumption(time)
+                consumption = self.vod.get_consumption(time) * self.num_stud
             stat_uncertainty = 0
 
             # Living situation
@@ -373,7 +373,7 @@ class Lecture:
                         time, living_list, living_random_length=living_random_length
                     )
                     consumption += c
-                    stat_uncertainty += s ** 2
+                    stat_uncertainty += s**2
                 else:
                     for l in living_list:
                         l.get_consumption(time) * self.num_stud / len(living_list)
@@ -409,7 +409,7 @@ class Lecture:
                 else:
                     raise AttributeError("Faculty must be selected")
                 consumption += c
-                stat_uncertainty += s ** 2
+                stat_uncertainty += s**2
             else:
                 consumption += self.device.get_consumption(time) * self.num_stud
 
@@ -448,7 +448,7 @@ class Lecture:
             )
 
             consumption += c
-            stat_uncertainty += s ** 2
+            stat_uncertainty += s**2
 
             # Electronic devices
             num_stud_bak = self.num_stud
@@ -481,7 +481,7 @@ class Lecture:
                 else:
                     raise AttributeError("Faculty must be selected")
                 consumption += c
-                stat_uncertainty += s ** 2
+                stat_uncertainty += s**2
             else:
                 consumption += self.device.get_consumption(time) * self.num_stud
 
@@ -560,7 +560,7 @@ class Lecture:
                     )
 
                     cons.append(c_offline + c_online)
-                    cons_std.append(np.sqrt(s_offline ** 2 + s_online ** 2))
+                    cons_std.append(np.sqrt(s_offline**2 + s_online**2))
 
             # Reset number of studenst
             self.num_stud = num_stud_bak
