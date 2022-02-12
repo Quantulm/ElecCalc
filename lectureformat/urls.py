@@ -23,5 +23,6 @@ urlpatterns = [
         name="calculator_result_selection",
     ),
     path("calculator_result", views.calculator_result, name="calculator_result"),
+    path("download_data", views.download_data, name="download_data"),
     path("privacy", views.privacy, name="privacy"),
 ]

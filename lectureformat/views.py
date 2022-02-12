@@ -12,6 +12,8 @@ import urllib, base64
 from PIL import Image
 import numpy as np
 import lectureformat.scripts as s
+import io
+from zipfile import ZipFile
 
 from .lecture import *
 from .models import *
@@ -252,8 +254,56 @@ def calculator_result(request):
     if lecture.figure is not None:
         context["figure"] = lecture.figure
 
+    request.session["data"] = lecture.contribs
+    request.session["data_std"] = lecture.contribs_std
+    request.session["figure"] = lecture.figure
+
     context["debug_figures"] = []
     for key in list(lecture.debug_figures.keys()):
         context["debug_figures"].append(lecture.debug_figures[key])
 
     return render(request, "calculator_result.html", context)
+
+
+def download_data(request):
+
+    contribs = request.session.get("data")
+    contribs_std = request.session.get("data_std")
+    figure = request.session.get("figure")
+
+    dev = [
+        contribs["Devices"][i] + contribs["Devices"][i + 1]
+        for i in range(int(len(contribs["Devices"]) / 2))
+    ]
+    dev_std = [
+        contribs_std["Devices"][i] + contribs_std["Devices"][i + 1]
+        for i in range(int(len(contribs_std["Devices"]) / 2))
+    ]
+
+    contribs["Devices"] = dev
+    contribs_std["Devices"] = dev_std
+
+    in_memory = io.BytesIO()
+    zf = ZipFile(in_memory, "a")
+
+    df = pd.DataFrame({k: pd.Series(v) for k, v in contribs.items()})
+    df_std = pd.DataFrame({k: pd.Series(v) for k, v in contribs_std.items()})
+
+    z_string_1 = df.to_string()
+    print(z_string_1)
+
+    zf.writestr("consumption_results.csv", df.to_string())
+    zf.writestr("consumption_stdev.csv", df_std.to_string())
+    zf.writestr("consumption_figure.svg", figure)
+
+    # fix for Linux zip files read in Windows
+    for file in zf.filelist:
+        file.create_system = 0
+
+    zf.close()
+    response = HttpResponse(in_memory.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = "attachment; filename=results.zip"
+
+    # df.to_csv(response)
+
+    return response

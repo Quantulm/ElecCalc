@@ -123,6 +123,8 @@ class Lecture:
 
         # Add different contributions
         for key in self.contribs.keys():
+            if key == "Grid":
+                continue
             if len(self.contribs[key]) == 0:
                 continue
 
@@ -165,7 +167,12 @@ class Lecture:
         if "showseating" in self.options:
             if self.hall.seating_capacity is not None:
                 if max(grid) > self.hall.seating_capacity:
-                    plt.axvline(onsite(self.hall.seating_capacity), linestyle=":", color="red", label="Maximum seating capacity")
+                    plt.axvline(
+                        onsite(self.hall.seating_capacity),
+                        linestyle=":",
+                        color="red",
+                        label="Maximum seating capacity",
+                    )
 
         # Put a legend to the right of the current axis
         plt.gca().legend(loc="center left", bbox_to_anchor=(1.05, 0.3))
@@ -715,6 +722,8 @@ class Lecture:
             min_cons = cons[min_ind]
             min_std = cons_std[min_ind]
 
+            self.contribs["Grid"] = grid
+            self.contribs_std["Grid"] = grid
             self.figure = self.get_hybrid_figure(x, cons, cons_std, grid)
 
             return min_cons[0], min_std[0]
