@@ -722,8 +722,8 @@ class Lecture:
             min_cons = cons[min_ind]
             min_std = cons_std[min_ind]
 
-            self.contribs["Grid"] = grid
-            self.contribs_std["Grid"] = grid
+            self.contribs["Grid"] = grid.tolist()
+            self.contribs_std["Grid"] = grid.tolist()
             self.figure = self.get_hybrid_figure(x, cons, cons_std, grid)
 
             return min_cons[0], min_std[0]
