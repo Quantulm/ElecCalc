@@ -162,6 +162,11 @@ class Lecture:
                 alpha=0.3,
             )
 
+        if "showseating" in self.options:
+            if self.hall.seating_capacity is not None:
+                if max(grid) > self.hall.seating_capacity:
+                    plt.axvline(onsite(self.hall.seating_capacity), linestyle=":", color="red", label="Maximum seating capacity")
+
         # Put a legend to the right of the current axis
         plt.gca().legend(loc="center left", bbox_to_anchor=(1.05, 0.3))
 
@@ -176,6 +181,8 @@ class Lecture:
         minind = np.where(cons == min(cons))
         min_cons = cons[minind]
         min_std = cons_std[minind]
+
+        plt.ylim([0.1, plt.gca().get_ylim()[1]])
 
         secax = plt.gca().secondary_xaxis("top", functions=(online, onsite))
         secax.set_xlabel("Number of students joining on-site")

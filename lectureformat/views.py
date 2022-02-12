@@ -119,6 +119,7 @@ options = [
     "beamer",
     "logplot",
     "notransport",
+    "showseating",
     "option1",
 ]
 
