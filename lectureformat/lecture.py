@@ -202,13 +202,13 @@ class Lecture:
         if "notransport" in self.options:
             min_ind_nt = np.where(notrans == min(notrans))
             min_cons_nt = notrans[min_ind_nt]
-            min_std_nt = notrans[min_ind_nt]
+            min_std_nt = np.sqrt(notrans_std[min_ind_nt])
             textstr = "Optimal mode:\n- %d students online\n- %d students on-site\n- Total consumption: %.2f $\pm$ %.2f$\,$kWh\n\n" % (
                 grid[minind],
                 max(grid) - grid[minind],
                 min_cons,
                 min_std,
-            ) + "Without transportation:\n- %d students online\n %d students on-site\n- Consumption: %.2f $\pm$ %.2f$\,$kWh" % (
+            ) + "Without transportation:\n- %d students online\n- %d students on-site\n- Consumption: %.2f $\pm$ %.2f$\,$kWh" % (
                 grid[min_ind_nt],
                 max(grid) - grid[min_ind_nt],
                 min_cons_nt,
