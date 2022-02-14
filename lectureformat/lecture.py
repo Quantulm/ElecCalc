@@ -261,8 +261,8 @@ class Lecture:
             for choice in choices:
                 rnd_cons += l_cons[choice]
             cons.append(rnd_cons)
-        # Use median instead of mean in case of tailed distribution
-        return np.median(cons), np.std(cons)
+        # Use median instead of mean in case of tailed distribution?
+        return np.mean(cons), np.std(cons)
 
     def get_random_device_consumption(
         self, time, device_list, dev_stat, sampling="simple", device_random_length=100
@@ -302,7 +302,7 @@ class Lecture:
                 for choice in choices:
                     rnd_cons += d_cons[int(choice)]
                 cons.append(rnd_cons)
-        return np.median(cons), np.std(cons)
+        return np.mean(cons), np.std(cons)
 
     def get_random_transportation_consumption(
         self,
@@ -381,7 +381,7 @@ class Lecture:
                 except ImportError:
                     warnings.warn("Corner module not found")
 
-        return np.median(cons), np.std(cons)
+        return np.mean(cons), np.std(cons)
 
     def get_consumption(
         self,

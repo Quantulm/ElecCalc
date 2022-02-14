@@ -439,7 +439,7 @@ class Faculty(models.Model):
         """
 
         if self.lecture_freq_file is not None:
-            lec_pd = np.median(np.genfromtxt(self.lecture_freq_file))
+            lec_pd = np.mean(np.genfromtxt(self.lecture_freq_file))
         else:
             lec_pd = self.lecture_frequency
 
