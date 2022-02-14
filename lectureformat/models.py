@@ -439,7 +439,12 @@ class Faculty(models.Model):
         """
 
         if self.lecture_freq_file is not None:
-            lec_pd = np.mean(np.genfromtxt(self.lecture_freq_file))
+            # This is only a quick fix, self.lecture_freq_file should
+            # return None if not given. TODO
+            try:
+                lec_pd = np.mean(np.genfromtxt(self.lecture_freq_file))
+            except ValueError:
+                lec_pd = self.lecture_frequency
         else:
             lec_pd = self.lecture_frequency
 
