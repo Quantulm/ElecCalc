@@ -273,11 +273,11 @@ def download_data(request):
 
     dev = [
         contribs["Devices"][i] + contribs["Devices"][i + 1]
-        for i in range(int(len(contribs["Devices"]) / 2))
+        for i in range(0, len(contribs["Devices"]), 2)
     ]
     dev_std = [
         contribs_std["Devices"][i] + contribs_std["Devices"][i + 1]
-        for i in range(int(len(contribs_std["Devices"]) / 2))
+        for i in range(0, len(contribs_std["Devices"]), 2)
     ]
 
     contribs["Devices"] = dev

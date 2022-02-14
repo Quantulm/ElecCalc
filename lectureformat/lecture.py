@@ -132,11 +132,11 @@ class Lecture:
                 # Devices get written twice, so they need to be summed again
                 contrib = [
                     self.contribs[key][i] + self.contribs[key][i + 1]
-                    for i in range(int(len(self.contribs[key]) / 2))
+                    for i in range(0, len(self.contribs[key]), 2)
                 ]
                 contrib_std = [
                     self.contribs_std[key][i] + self.contribs_std[key][i + 1]
-                    for i in range(int(len(self.contribs_std[key]) / 2))
+                    for i in range(0, len(self.contribs_std[key]), 2)
                 ]
                 func = interpolate.interp1d(interp_grid, np.array(contrib))
                 func_std = interpolate.interp1d(interp_grid, np.sqrt(contrib_std))
