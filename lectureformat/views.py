@@ -297,7 +297,7 @@ def download_data(request):
         "Devices": [],
     }
     # Split devices
-    for i in range(0, len(contribs["Devices"])):
+    for i in range(0, len(contribs["Devices"]), 2):
         contribs_offline["Devices"].append(contribs["Devices"][i])
         contribs_offline_std["Devices"].append(contribs_std["Devices"][i])
         contribs_online["Devices"].append(contribs["Devices"][i + 1])
