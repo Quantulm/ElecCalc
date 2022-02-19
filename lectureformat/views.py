@@ -271,6 +271,38 @@ def download_data(request):
     contribs_std = request.session.get("data_std")
     figure = request.session.get("figure")
 
+    # Split dataframes in online and offline contributions
+    # Online
+    contribs_online = {
+        "Streaming": contribs["Streaming"],
+        "VoD": contribs["VoD"],
+        "Living": contribs["Living"],
+        "Devices": [],
+    }
+    contribs_online_std = {
+        "Streaming": contribs_std["Streaming"],
+        "VoD": contribs_std["VoD"],
+        "Living": contribs_std["Living"],
+        "Devices": [],
+    }
+    # Offline
+    contribs_offline = {
+        "Lecture hall": contribs["Lecture hall"],
+        "Transportation": contribs["Transportation"],
+        "Devices": [],
+    }
+    contribs_offline_std = {
+        "Lecture hall": contribs_std["Lecture hall"],
+        "Transportation": contribs_std["Transportation"],
+        "Devices": [],
+    }
+    # Split devices
+    for i in range(0, len(contribs["Devices"])):
+        contribs_offline["Devices"].append(contribs["Devices"][i])
+        contribs_offline_std["Devices"].append(contribs_std["Devices"][i])
+        contribs_online["Devices"].append(contribs["Devices"][i + 1])
+        contribs_online_std["Devices"].append(contribs_std["Devices"][i + 1])
+
     dev = [
         contribs["Devices"][i] + contribs["Devices"][i + 1]
         for i in range(0, len(contribs["Devices"]), 2)
@@ -289,11 +321,21 @@ def download_data(request):
     df = pd.DataFrame({k: pd.Series(v) for k, v in contribs.items()})
     df_std = pd.DataFrame({k: pd.Series(v) for k, v in contribs_std.items()})
 
-    z_string_1 = df.to_string()
-    print(z_string_1)
+    df_online = pd.DataFrame({k: pd.Series(v) for k, v in contribs_online.items()})
+    df_online_std = pd.DataFrame(
+        {k: pd.Series(v) for k, v in contribs_online_std.items()}
+    )
+    df_offline = pd.DataFrame({k: pd.Series(v) for k, v in contribs_offline.items()})
+    df_offline_std = pd.DataFrame(
+        {k: pd.Series(v) for k, v in contribs_offline_std.items()}
+    )
 
     zf.writestr("consumption_results.csv", df.to_string())
     zf.writestr("consumption_stdev.csv", df_std.to_string())
+    zf.writestr("consumption_online.csv", df_online.to_string())
+    zf.writestr("consumption_online_stdev.csv", df_online_std.to_string())
+    zf.writestr("consumption_offline.csv", df_offline.to_string())
+    zf.writestr("consumption_offline_stdev.csv", df_offline_std.to_string())
     zf.writestr("consumption_figure.svg", figure)
 
     # fix for Linux zip files read in Windows
@@ -303,7 +345,5 @@ def download_data(request):
     zf.close()
     response = HttpResponse(in_memory.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = "attachment; filename=results.zip"
-
-    # df.to_csv(response)
 
     return response
